@@ -1,0 +1,31 @@
+version: '3.7'
+
+services:
+  bot:
+    image: python:3.10
+    command: >
+      sh -c "pip install poetry &&
+             poetry config virtualenvs.create false &&
+             poetry install &&
+             python /app/pythonbot.py"
+    volumes:
+      - ./config:/app/config
+      - ./database:/app/database
+      - ./cogs:/app/cogs 
+      - .:/app
+    env_file:
+      - .env
+    working_dir: /app
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./imagenes:/usr/share/nginx/html/imagenes
+
+
+
+
+
+ 

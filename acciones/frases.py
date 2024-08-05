@@ -1,0 +1,52 @@
+# frases motivadoras para el bot randon .
+import random
+
+def frases_motivadoras(nombre: str) -> str:
+    
+    FRASES_PARA_MOTIVAR = [
+        f"{nombre} La suerte de la vida es tener amigos como vos.",
+        f"{nombre} La suerte de tu dia depende de como lo afrontes desde primera hora de la mañana.",
+        f"Se  el cambio que quieres ver en el mundo {nombre}.",
+        f"La vida {nombre} es un regalo, no la desperdicies.",
+        f"Nadie puede hacer todo,{nombre} pero todos podemos hacer algo.",
+        f"Nadie puede hacerte sentir inferior, {nombre} sin tu consentimiento.",
+        f"El exito {nombre} es la suma de pequeños esfuerzos repetidos dia tras dia.",
+        f"Que tu sonrisa cambie el mundo,{nombre} pero no dejes que el mundo cambie tu sonrisa.",
+        f"{nombre} Que maravilloso es que nadie necesita esperar un solo momento antes de comenzar a mejorar el mundo.",
+        f"El pesimisita se queja del viento, {nombre} el optimista espera que cambie, el realista ajusta las velas.",
+        f"Muchos piensan que fracasar es el final, pero en realidad es el principio de algo mejor {nombre}.",
+        f"{nombre} No tienes que ser grande para comenzar, pero tienes que comenzar para ser grande.",
+        f"Podemos quejarnos porque los rosales tienen espinas,{nombre} o alegrarnos porque los espinos tienen rosas.",
+        f"El monte Everest no se escalo en un solo dia {nombre}.",
+        f"{nombre} El momento en que quieres dejarlo todo es el momento en que debes seguir adelante.",
+        f"La creatividad, {nombre} es la inteligencia divirtiendose.",
+        f"Rodeate de personas que te hagan sonreir {nombre}.",
+        f"{nombre} Rodeate de personas que crean en tus sueños, animen tus ideas, apoyen tus ambiciones, y saquen lo mejor de ti.",
+        f"No importa lo lento que vayas mientras no te detengas {nombre}.",
+        f"No importa lo que te diga la gente, {nombre} las palabras y las ideas pueden cambiar el mundo.",
+        f"Nunca eres demasiado viejo para fijarte otra meta, {nombre} o para soñar un nuevo sueño.",
+        f"La verdadera felicidad no es la que se obtiene, sino la que se da {nombre}.",
+        f"La energia positiva es la llave que abre todas las puertas {nombre}.",
+        f"{nombre} La energia y la persistencia conquistan todas las cosas.",
+        f"No es la muerte lo que deberiamos temer,{nombre} sino nunca haber comenzado a vivir.",
+        f"{nombre} El que pierde el tiempo es el que no hace nada por los demas.",
+        f"La vida es como una bicicleta,{nombre} para mantener el equilibrio debes seguir adelante.",
+        f"{nombre} Camina hacia el sol y la sombra caera detras de ti.",
+        f"No pares cuando estes cansado. Para cuando hayas terminado {nombre}.",
+        f" {nombre} Vive la vida al maximo y enfoca en lo positivo.",
+        f"Vive como si fueras a morir mañana, {nombre} aprende ,como si fueras a vivir para siempre.",
+        f"Solo tu puedes cambiar tu vida, {nombre} nadie mas puede hacerlo por mi.",
+        f"El que cree que lo sabe todo es incapaz de aprender algo nuevo {nombre}.",
+        f"{nombre} La mala noticia es que el tiempo vuela, la buena noticia es que tu eres el piloto.",
+        f"La felicidad no ocurre por casualidad, sino por eleccion {nombre}.",
+        f"Solo aquellos que se arriesgan a ir demasiado lejos pueden descubrir hasta donde pueden llegar {nombre}.",
+        f"{nombre} No mires hacia atras, no vas en esa direccion.",
+        f"Avanza con confianza en la direccion de tus sueños {nombre}.",
+        f"{nombre} Lo que cuenta no es de donde vienes, sino a donde vas.",
+        f"La vida es un viaje,{nombre} no un destino.",
+        f"Nunca, nunca, {nombre} nunca abandones.",
+        f"{nombre} La diligencia es la madre de la buena suerte.",
+        f"{nombre} Si no puedes volar, corre. Si no puedes correr, camina. Si no puedes caminar, gatea. Pero hagas lo que hagas, sigue adelante.",
+            
+    ]
+    return random.choice(FRASES_PARA_MOTIVAR)
