@@ -13,6 +13,8 @@ Comandos disponibles para el bot:
 - **>youtube**: Busca un video en YouTube, debes ingresar el tipo de musica (tango).
 - **>info**: Muestra información del servidor mas temperatura del cpu.
 - **>gemini**: Inicia una conversación con la IA de Gemini.
+- **>abrazo**: Abraza a un usuario.
+- **>me_abrazo**: se abraza a si mismo.
 \`\`\`
 """
     return ayuda_msg
