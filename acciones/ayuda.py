@@ -15,6 +15,7 @@ Comandos disponibles para el bot:
 - **>gemini**: Inicia una conversación con la IA de Gemini.
 - **>abrazo**: Abraza a un usuario.
 - **>me_abrazo**: se abraza a si mismo.
+- **>llama**: Inicia una conversación con la IA de Llama.
 \`\`\`
 """
     return ayuda_msg

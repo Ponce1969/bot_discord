@@ -10,7 +10,7 @@ def cafe(tipo: str) -> str:
         "4": "☕ cafe con whisky",
         "5": "☕ cafe con crema",
         "6": "☕ cafe con caramelo",
-        "7": "☕ cafe con hielo",
+        "7": "☕ cafe con ron, azucar y vainilla",
     }
     return cafe.get(tipo, "☕ cafe solo")
 
@@ -24,7 +24,7 @@ Elige un tipo de café para tomar:
 4. ☕ cafe con whisky
 5. ☕ cafe con crema
 6. ☕ cafe con caramelo
-7. ☕ cafe con hielo
+7. ☕ cafe con ron, azucar y vainilla
 Escribe el número del café que deseas.
 \`\`\`
 """
