@@ -1,6 +1,30 @@
-version: '3.7'
+version: '3'
 
 services:
+  postgres:
+    image: postgres:alpine
+    env_file:
+      - .env
+    volumes:
+      - /home/gonzapython/Documentos/vscode_codigo/Discord/datosBot:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4
+    env_file:
+      - .env
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
+    ports:
+      - "8082:80"
+    depends_on:
+      - postgres
+
   bot:
     image: python:3.10
     command: >
@@ -10,12 +34,15 @@ services:
              python /app/pythonbot.py"
     volumes:
       - ./config:/app/config
-      - ./database:/app/database
+      - ./base:/app/base 
       - ./cogs:/app/cogs 
       - .:/app
     env_file:
       - .env
     working_dir: /app
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   nginx:
     image: nginx:alpine
@@ -24,8 +51,7 @@ services:
     volumes:
       - ./imagenes:/usr/share/nginx/html/imagenes
 
-
-
-
+volumes:
+  db_data:
 
  

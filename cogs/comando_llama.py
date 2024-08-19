@@ -1,8 +1,6 @@
-
 from discord.ext import commands
 from acciones.llama import initialize_groq_client_and_model, TokenManager
 from config.lla_config import GROQ_API_KEY, GROQ_MODEL
-
 
 # Inicializar el gestor de tokens
 token_manager = TokenManager()
@@ -22,7 +20,10 @@ class Llama(commands.Cog):
 
             # Obtener la respuesta del modelo Groq
             response = self.client.chat.completions.create(
-                messages=[{"role": "user", "content": user_message}],
+                messages=[
+                    {"role": "system", "content": "Eres un experto en Python y desarrollo de software en Python. Puedes responder preguntas sobre sintaxis, bibliotecas, frameworks, buenas prácticas y más. Recuerda que solo debes responder sobre temas relacionados con Python."},
+                    {"role": "user", "content": user_message}
+                ],
                 model=self.client.model,
             ).choices[0].message.content
 
@@ -39,4 +40,4 @@ class Llama(commands.Cog):
             await ctx.send(f"Error al obtener la respuesta del modelo: {str(e)}")
 
 async def setup(bot):
-    await bot.add_cog(Llama(bot)) 
+    await bot.add_cog(Llama(bot))

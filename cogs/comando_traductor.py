@@ -1,5 +1,4 @@
-# Aca desarrollaremos el comando traductor que traducira el texto que le pasemos a español
-
+import asyncio
 from discord.ext import commands
 from acciones.traductor import translate
 
@@ -16,7 +15,12 @@ class ComandoTraductor(commands.Cog):
         :param text: Texto a traducir.
         """
         translation = translate(text)
-        await ctx.send(translation)
+        mensaje = await ctx.send(translation)
+        
+        # Esperar 30 segundos antes de borrar los mensajes
+        await asyncio.sleep(30)
+        await mensaje.delete()
+        await ctx.message.delete()
 
 async def setup(bot):
     await bot.add_cog(ComandoTraductor(bot))

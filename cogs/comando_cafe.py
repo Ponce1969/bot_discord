@@ -19,16 +19,24 @@ class Cafe(commands.Cog):
         await ctx.send(opciones_cafe())
 
         def check(m):
-            return m.author == ctx.author and m.channel == ctx.channel and m.content.isdigit()
+            return m.author == ctx.author and m.channel == ctx.channel
 
-        try:
-            # Esperar la respuesta del usuario
-            msg = await self.bot.wait_for('message', check=check, timeout=30.0)
-            tipo = msg.content
-            cafe_tipo = cafe(tipo)
-            await ctx.send(f"Aquí tienes el {cafe_tipo} caliente que pediste, {ctx.author.mention}!")
-        except TimeoutError: # Capturar el error de tiempo de espera
-            await ctx.send(f"{ctx.author.mention}, tardaste demasiado en responder. Intenta nuevamente.")
+        while True:
+            try:
+                # Esperar la respuesta del usuario
+                msg = await self.bot.wait_for('message', check=check, timeout=30.0)
+                if not msg.content.isdigit():
+                    await ctx.send(f"{ctx.author.mention}, por favor ingresa un número entero válido.")
+                    await ctx.send(opciones_cafe())
+                    continue
+
+                tipo = msg.content
+                cafe_tipo = cafe(tipo)
+                await ctx.send(f"Aquí tienes el {cafe_tipo} caliente que pediste, {ctx.author.mention}!")
+                break
+            except TimeoutError:  # Capturar el error de tiempo de espera
+                await ctx.send(f"{ctx.author.mention}, tardaste demasiado en responder. Intenta nuevamente.")
+                break
 
 async def setup(bot):
     await bot.add_cog(Cafe(bot))

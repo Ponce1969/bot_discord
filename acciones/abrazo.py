@@ -39,7 +39,7 @@ def me_abrazo(nombre: str) -> str:
         f"Parece que {nombre}, disfruta de su propia compañia.",
         f"{nombre} Se da amor a si mismo con un abrazo.",
         f"UUUy, {nombre} se abraza a si mismo. ¡Que tierno!",
-        f"Nececitas un abrazo{nombre}, aqui estamos.",
+        f"Nececitas un abrazo {nombre}, aqui estamos.",
         f"Parece que {nombre} se abraza a si mismo. ¡Eso esta bien!",
         f"Aqui estamos para darte un abrazo grupal {nombre}.",
         f"¡Que lindo {nombre}, abrazando a su propio ser!",

@@ -25,32 +25,51 @@ class TokenManager:
             return True
         return False
 
-def initialize_groq_client_and_model(api_key: str, model: Optional[str] = "llama-3.1-70b-versatile") -> Groq:
-    """Inicializa el cliente de Groq y el modelo especificado."""
-    client = Groq(api_key=api_key)
-    if model:
-        client.model = model
-
-    # Definimos el contexto inicial como una constante
+def create_initial_context() -> dict:
+    """Crea el contexto inicial para el modelo."""
     CONTEXT_INICIAL = (
-        "Eres un experto en Python y un ingeniero de software con un gran conocimiento en este lenguaje. "
-        "Estás trabajando en un proyecto de desarrollo de software en Python y debes entrenar a los junior developers. "
+        "Eres un experto en Python y desarrollo de software en Python y debes entrenar a los junior developers. "
+        "Estás trabajando en un proyecto. "
         "Esto te ayuda a contestar de la manera correcta con todo conocimiento aprendido como si tu fueras un experto en Python. "
         "Puedes responder preguntas sobre sintaxis, bibliotecas, frameworks, buenas prácticas y más. "
         "Recuerda que solo debes responder sobre temas relacionados con Python."
     )
 
-    # Creamos el contexto de guía inicial
-    guide_context = {
+    return {
         "messages": [
             {
-                "role": "assistant",
+                "role": "system",
                 "content": CONTEXT_INICIAL,
             },
         ]
     }
 
-    # Agregamos el contexto de guía inicial al cliente
-    client.context = guide_context
+def initialize_groq_client(api_key: str) -> Groq:
+    """Inicializa el cliente de Groq."""
+    return Groq(api_key=api_key)
 
+def set_model_and_context(client: Groq, model: Optional[str], context: dict):
+    """Configura el modelo y el contexto del cliente."""
+    if model:
+        client.model = model
+    client.context = context
+
+def initialize_groq_client_and_model(api_key: str, model: Optional[str] = "llama-3.1-70b-versatile") -> Groq:
+    """Inicializa el cliente de Groq y el modelo especificado."""
+    client = initialize_groq_client(api_key)
+    initial_context = create_initial_context()
+    set_model_and_context(client, model, initial_context)
     return client
+
+def get_chat_completion(client: Groq, user_message: str) -> str:
+    """Obtiene una respuesta del modelo Groq."""
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": user_message,
+            }
+        ],
+        model=client.model,
+    )
+    return chat_completion.choices[0].message.content
