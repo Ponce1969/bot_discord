@@ -40,6 +40,8 @@ services:
     env_file:
       - .env
     working_dir: /app
+    ports:
+      - "8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -50,8 +52,8 @@ services:
       - "8080:80"
     volumes:
       - ./imagenes:/usr/share/nginx/html/imagenes
+      - /home/gonzapython/Documentos/vscode_codigo/Discord/nginx/nginx.config:/etc/nginx/nginx.conf
 
 volumes:
   db_data:
-
  

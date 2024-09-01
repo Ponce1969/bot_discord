@@ -1,0 +1,57 @@
+# aca se desarrola las funcion de chistes randon
+
+import random
+
+def chistes():
+    chistes = [
+        "¿Por qué los pájaros no usan Facebook? Porque ya tienen Twitter.",
+        "¿Cuál es el animal más antiguo? La cebra, porque está en blanco y negro.",
+        "¿Qué le dice un jardinero a otro? ¡Qué cultivado eres!",
+        "¿Que hace una abeja en el gimnasio? ¡Zum-ba!",
+        "¿Que es una mujer objeto? Una instancia de una mujer con clase .",
+        "¿Porque los programadores odian la naturaleza? ¡Porque tiene muchos bugs.!",
+        "¿Sabes las dos palabras que te abrirán muchas puertas en el mundo? tire y empuje.",
+        "¿Cuál es el desodorante favorito de los dinosaurios? El rex-ona. ",
+        "¿Cuál es el deseo de una servilleta? Ser billete.",
+        "¿Que le menciona una IP a otra IP? Hola mundo.",
+        "¿Que le dice una IP a otra IP? - ¿Que tramas?.",
+        "Pepito, si en esta mano tengo 8 naranjas y en esta otra, 6 naranjas, ¿qué tengo? - ¡Unas manos enormes, profesora!",
+        "¿Por qué está feliz la escoba? - Porque ba-rriendo ",
+        "¿Cómo se dice fin en japonés?- Sakabó. ",
+        "Es imposible discutir con un DJ, siempre te cambia de tema.",
+        "Solo hay 10 tipos de personas en este bendito mundo, las que saben binario y las que no.",
+        "¿Que le dice un gif a un jpg? - ¿Qué tal, cuerpo de píxeles?",
+        "Dos programadores java charlando: «la excepción confirma la regla» «pues si hay una excepción, la capturamos».",
+        " Para qué quiere un pastor un compilador? pues para tener «OBEJOTAS».",
+        "La barriga de un programador es directamente proporcional a la cantidad de información que maneja.",
+        " Dios es real, a no ser que lo declares como integer.",
+        "Dos programadores dialogando sobre sus relaciones con su pareja: Yo tengo un vínculo muy fuerte con mi mujer. Entonces, tienes un hipervínculo?.",
+        "¿Me puede decir la contraseña de wifi de su bar, por favor?, Tómate un agua por lo menos !! , Todo junto?",
+        "Mi mujer me dijo que necesitaba más espacio. ¿Y qué hiciste? La regalé un disco duro de 2Tb.",
+        "Hola, llamo porque no me funciona el módem de internet. ¿Qué luces tiene encendidas? La del pasillo y la del salón. Vale, ahora mismo le envío a un informático.",
+        "¿Cuál es el animal más antiguo? La cebra, porque está en blanco y negro.",
+        "Google es como un cuñado: no te deja acabar la frase y ya te está dando sugerencias.",
+        "Me pone que mi contraseña es incorrecta, pero no dejo de escribir 'incorrecta' y no me deja entrar.",
+        "He introducido lo que he comido hoy en mi nueva aplicación de fitness y acaba de enviar una ambulancia a mi casa.",
+        "Cuál es el mejor lugar para esconder un cadáver? En la segunda pagina de Google.",
+        "Feliz aniversario de 3 semanas a las 26 pestañas del navegador que tengo abiertas",
+        "¿Qué le dice un jardinero a otro? Nos vemos cuando podamos.",
+        "La mayor exportación de Australia son los boomerangs. También son la mayor importación.",
+        "Intenté organizar un torneo profesional de escondite, pero fue un completo fracaso. Los buenos jugadores son difíciles de encontrar.",
+        "El otro día vendí mi aspiradora. Lo único que hacía era acumular polvo.",
+        "Tengo un amigo otaku que estaba triste, así que lo animé. ",
+        "Van dos fantasmas y se cae el del médium.",
+        " Oye, ¿sabes cómo se llaman los habitantes de Nueva York? — Hombre, pues todos no.",
+        "Perdone, ¿dónde está la sección de libros sobre el sentido del gusto?— Lo siento, sobre gustos no hay nada escrito.",
+        "¿Cuántos programadores hacen falta para cambiar una bombilla? – Ninguno, porque es un problema hardware.",
+        "Se abre el telón, aparece un informático y dice: ¡qué habéis tocado que no se cierra el telón!",
+        "¿Pero qué haces tirando esos portátiles al río? – ! pero mira como beben los PC,s en el rió!.",
+        " Error 0094782: No se detecta ningún teclado pulse una tecla para continuar.",
+        "Están 1023 gigabytes en una fiesta, llegan 1048576 más y dicen: ¿Nos hacemos un peta?.",
+        "¿Qué le dice un .GIF a un .JPEG? -Anímate viejo.",
+        "Los verdaderos programadores programan en binario.",
+        "No te despedirán del trabajo, si nunca comentas tu código y además eres el único que sabe cómo funciona.",
+        
+    ]
+    
+    return random.choice(chistes)

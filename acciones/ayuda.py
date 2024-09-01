@@ -17,6 +17,9 @@ Comandos disponibles para el bot:
 - **>abrazo**: Al no ingresar un nombre, el bot abraza a nadie.
 - **>me_abrazo**: se abraza a si mismo.
 - **>llama**: Inicia una conversación con la IA de Llama, sobre codigo Python.
+- **>adivina**: Juego de adivinanzas, debes ingresar una letra .
+- **>chiste**: Muestra un chiste , como tiene alias, puedes usar >chistes.
+- **>aventura**: Inicia una aventura de texto, debes ingresar al chat_juego_aventura.
 \`\`\`
 """
     return ayuda_msg

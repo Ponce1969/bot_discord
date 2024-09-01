@@ -1,6 +1,6 @@
 # cogs/cafe.py
 # Description: Comando de café
-# cogs/cafe.py
+# Importar librerías
 from discord.ext import commands
 from discord.ext.commands import Context
 from acciones.cafe import cafe, opciones_cafe
