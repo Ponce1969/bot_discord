@@ -20,6 +20,9 @@ Comandos disponibles para el bot:
 - **>adivina**: Juego de adivinanzas, debes ingresar una letra .
 - **>chiste**: Muestra un chiste , como tiene alias, puedes usar >chistes.
 - **>aventura**: Inicia una aventura de texto, debes ingresar al chat_juego_aventura.
+- **>gracias**: con el comando >gracias @usuario, agradece a un usuario, sumnando puntos para un ranking.
+- **>ranking**: Muestra el ranking de los usuarios que han sido agradecidos.
+- **>vigilante**: cuida las malas palabras, si las detecta, te avisa y te da una advertencia, al llegar a 3 advertencias, te banea por 24 horas.
 \`\`\`
 """
     return ayuda_msg
