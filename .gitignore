@@ -1,3 +1,7 @@
 # Archivos específicos
 .env
- datosBot/
+datosBot/
+
+# Eliminar todos los python cache
+*.pyc
+**/__pycache__/
