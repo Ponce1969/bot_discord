@@ -1,8 +1,8 @@
 # Description: Comando para jugar al tateti
-# Comando: >tateti
+# Comando: >tateti [contra_bot]
 import discord
 from discord.ext import commands
-from acciones.tateti import Tateti
+from acciones.tateti import TatetiSetup
 
 class TatetiCog(commands.Cog):
     def __init__(self, bot):
@@ -11,8 +11,8 @@ class TatetiCog(commands.Cog):
     @commands.command(name='tateti')
     async def tateti(self, ctx):
         """Inicia un nuevo juego de tateti"""
-        view = Tateti(ctx)
-        await ctx.send('¡Comienza el juego de tateti!', view=view)
+        view = TatetiSetup(ctx)
+        await ctx.send('¿Contra quién quieres jugar?', view=view)
 
 # Necesario para que el bot cargue este cog
 async def setup(bot):
