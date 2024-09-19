@@ -5,6 +5,7 @@ from base.database import get_db
 from acciones.gracias import dar_gracias
 from base.database import User
 import asyncio
+from table2ascii import table2ascii as t2a, PresetStyle
 
 class ComandoGracias(commands.Cog):
     def __init__(self, bot):
@@ -46,10 +47,23 @@ class ComandoGracias(commands.Cog):
         """
         db: Session = next(get_db())
         users = db.query(User).order_by(User.thanks_count.desc()).limit(10).all()
-        ranking_message = "Ranking de agradecimientos:\n"
+        
+        # Crear los datos del ranking para la tabla (usuario y puntaje)
+        ranking_data = [["Usuario", "Agradecimientos"]]  # Encabezados de la tabla
+        
         for user in users:
-            ranking_message += f"{user.username}: {user.thanks_count} agradecimientos\n"
-        await ctx.send(ranking_message)
+            ranking_data.append([user.username, user.thanks_count])
+        
+        # Usar table2ascii para dar formato a la tabla
+        table = t2a(
+            header=ranking_data[0],   # Los encabezados
+            body=ranking_data[1:],    # Los datos (sin el encabezado)
+            style=PresetStyle.thin_box # Se puede cambiar el estilo de la tabla si se desea
+        )
+        
+        # Enviar la tabla en Discord dentro de un bloque de código
+        await ctx.send(f"```\n{table}\n```")
 
 async def setup(bot):
     await bot.add_cog(ComandoGracias(bot))
+ 
