@@ -23,6 +23,8 @@ Comandos disponibles para el bot:
 - **>gracias**: con el comando >gracias @usuario, agradece a un usuario, sumnando puntos para un ranking.
 - **>ranking**: Muestra el ranking de los usuarios que han sido agradecidos.
 - **>vigilante**: cuida las malas palabras, si las detecta, te avisa y te da una advertencia, al llegar a 3 advertencias, te banea por 24 horas.
+- **>tateti**: Inicia un nuevo juego de tateti, debes ingresar una opcion de jugar contra el bot o contra otro usuario.
+- **>tateti_ganadores**: Muestra la lista de ganadores del juego de tateti.
 \`\`\`
 """
     return ayuda_msg

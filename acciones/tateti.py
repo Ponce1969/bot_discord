@@ -7,6 +7,8 @@ import discord
 from discord.ui import Button, View, Select
 from discord import ButtonStyle
 import random
+from sqlalchemy.orm import Session
+from base.database import get_db, TatetiWinner
 
 class Tateti(View):
     def __init__(self, ctx, contra_bot=False):
@@ -50,6 +52,7 @@ class Tateti(View):
             # Verificar si hay un ganador
             if self.verificar_ganador(jugador):
                 await interaction.response.edit_message(content=f'{jugador} ha ganado!', view=self)
+                await self.registrar_ganador(interaction.user)
                 self.stop()
             elif self.turno == 9:
                 await interaction.response.edit_message(content='Empate!', view=self)
@@ -79,6 +82,7 @@ class Tateti(View):
             # Verificar si hay un ganador
             if self.verificar_ganador(jugador):
                 await interaction.message.edit(content=f'{jugador} ha ganado!', view=self)
+                await self.registrar_ganador(interaction.user)
                 self.stop()
             elif self.turno == 9:
                 await interaction.message.edit(content='Empate!', view=self)
@@ -100,6 +104,17 @@ class Tateti(View):
         if all(self.tablero[i][2-i].label == jugador for i in range(3)):  # Diagonal inversa
             return True
         return False
+
+    async def registrar_ganador(self, user):
+        db = next(get_db())
+        try:
+            nuevo_ganador = TatetiWinner(discord_id=user.id, username=user.name)
+            db.add(nuevo_ganador)
+            db.commit()
+        except Exception as e:
+            print(f"Error al registrar el ganador: {e}")
+        finally:
+            db.close()
 
 class TatetiSetup(View):
     def __init__(self, ctx):
