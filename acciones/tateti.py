@@ -1,8 +1,3 @@
-#implementamos el juego del tateti
-# Importar las librerías necesarias
-# jugamos con botones y vistas
-# podemos elegir jugar contra otro usuario o contra el bot
-
 import discord
 from discord.ui import Button, View, Select
 from discord import ButtonStyle
@@ -44,18 +39,23 @@ class Tateti(View):
         i, j = map(int, interaction.data['custom_id'])
         if self.tablero[i][j].label == '-':
             jugador = '❌' if self.jugador_actual == 0 else '⭕'
-            estilo = ButtonStyle.danger if self.jugador_actual == 0 else ButtonStyle.success
+            estilo = ButtonStyle.primary if self.jugador_actual == 0 else ButtonStyle.success
             self.tablero[i][j].label = jugador
             self.tablero[i][j].style = estilo
             self.tablero[i][j].disabled = True  # Deshabilitar el botón después de ser presionado
             self.turno += 1
             # Verificar si hay un ganador
             if self.verificar_ganador(jugador):
-                await interaction.response.edit_message(content=f'{jugador} ha ganado!', view=self)
-                await self.registrar_ganador(interaction.user)
+                if self.jugador_actual == 0:
+                    ganador = interaction.user.name
+                else:
+                    ganador = "Bot" if self.contra_bot else interaction.user.name
+                await interaction.response.edit_message(content=f'{ganador} ha ganado!', view=self)
+                if self.jugador_actual == 0 or not self.contra_bot:
+                    await self.registrar_ganador(interaction.user)
                 self.stop()
             elif self.turno == 9:
-                await interaction.response.edit_message(content='Empate!', view=self)
+                await interaction.response.edit_message(content='¡Hay un empate en el juego!', view=self)
                 self.stop()
             else:
                 # Cambiar al otro jugador
@@ -81,11 +81,11 @@ class Tateti(View):
             self.turno += 1
             # Verificar si hay un ganador
             if self.verificar_ganador(jugador):
-                await interaction.message.edit(content=f'{jugador} ha ganado!', view=self)
-                await self.registrar_ganador(interaction.user)
+                ganador = "Bot"
+                await interaction.message.edit(content=f'{ganador} ha ganado!', view=self)
                 self.stop()
             elif self.turno == 9:
-                await interaction.message.edit(content='Empate!', view=self)
+                await interaction.message.edit(content='¡Hay un empate en el juego!', view=self)
                 self.stop()
             else:
                 # Cambiar al otro jugador
@@ -142,7 +142,6 @@ class TatetiSetup(View):
             view = Tateti(self.ctx, contra_bot=True)
 
         await interaction.response.edit_message(content='¡Comienza el juego de tateti!', view=view)
-
 
 
     

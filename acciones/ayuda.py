@@ -25,6 +25,7 @@ Comandos disponibles para el bot:
 - **>vigilante**: cuida las malas palabras, si las detecta, te avisa y te da una advertencia, al llegar a 3 advertencias, te banea por 24 horas.
 - **>tateti**: Inicia un nuevo juego de tateti, debes ingresar una opcion de jugar contra el bot o contra otro usuario.
 - **>tateti_ganadores**: Muestra la lista de ganadores del juego de tateti.
+- **oyente**: preguntas y respuestas, comunes y el bot responde usamos fuzzywuzzy, python-Levenshtein.
 \`\`\`
 """
     return ayuda_msg

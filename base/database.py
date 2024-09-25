@@ -25,6 +25,12 @@ class TatetiWinner(Base):
     username = Column(String, nullable=False)
     win_date = Column(DateTime, default=datetime.utcnow)
 
+class FAQ(Base):
+    __tablename__ = 'faq'
+    id = Column(Integer, primary_key=True)
+    question = Column(String, nullable=False)
+    answer = Column(String, nullable=False)
+
 # Obtener la URL de la base de datos desde la variable de entorno
 DATABASE_URL = os.getenv("DB_URI")
 
@@ -44,3 +50,37 @@ def init_db():
 
 # Inicializar la base de datos
 init_db()
+
+# Definir las preguntas y respuestas
+faq_data = [
+    {"question": "¿Qué puedes hacer?", "answer": ">ayuda y verás todo lo que puedo hacer en el chat por ti!!"},
+    {"question": "¿Dónde puedo jugar?", "answer": "juega en el chat_juego_aventura !"},
+    # Agrega más preguntas y respuestas aquí
+]
+
+# Validar los datos antes de insertarlos
+def validate_faq_data(faq):
+    if not faq.get("question") or not faq.get("answer"):
+        return False
+    return True
+
+# Insertar las preguntas y respuestas en la base de datos
+def insert_faq_data():
+    session = next(get_db())
+    try:
+        for faq in faq_data:
+            if validate_faq_data(faq):
+                faq_obj = FAQ(question=faq["question"], answer=faq["answer"])
+                session.add(faq_obj)
+            else:
+                print(f"Datos inválidos: {faq}")
+        session.commit()
+        print("Datos insertados correctamente en la tabla FAQ.")
+    except Exception as e:
+        session.rollback()
+        print(f"Error al insertar datos en la tabla FAQ: {e}")
+    finally:
+        session.close()
+
+# Ejecutar la función para insertar los datos
+insert_faq_data()
