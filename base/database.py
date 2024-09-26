@@ -1,5 +1,8 @@
+# Este script se encarga de crear las tablas de la base de datos y de insertar datos iniciales en la tabla FAQ.
+# También valida los datos antes de insertarlos y muestra un mensaje de error si los datos son inválidos.
+# Para ejecutar este script, debes tener la base de datos creada y configurada en el archivo .env.
 import os
-from sqlalchemy import Column, Integer, String, DateTime, create_engine, inspect, text
+from sqlalchemy import Column, Integer, String, DateTime, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import ProgrammingError
@@ -23,7 +26,7 @@ class TatetiWinner(Base):
     id = Column(Integer, primary_key=True)
     discord_id = Column(String, nullable=False)
     username = Column(String, nullable=False)
-    win_date = Column(DateTime, default=datetime.utcnow)
+    win_date = Column(DateTime, default=datetime.timezone.utc)
 
 class FAQ(Base):
     __tablename__ = 'faq'

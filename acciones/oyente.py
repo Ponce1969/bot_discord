@@ -13,4 +13,4 @@ def fuzzy_match(user_input: str, session: Session):
     best_match = process.extractOne(user_input, questions)
     if best_match and best_match[1] >= 70:  # 70% similarity threshold
         return best_match[0], questions_and_answers[questions.index(best_match[0])][1]
-    return None, None 
+    return None, None
