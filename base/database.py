@@ -2,12 +2,15 @@
 # También valida los datos antes de insertarlos y muestra un mensaje de error si los datos son inválidos.
 # Para ejecutar este script, debes tener la base de datos creada y configurada en el archivo .env.
 import os
-from sqlalchemy import Column, Integer, String, DateTime, create_engine
+import pytz
+from sqlalchemy import Column, Integer, String, DateTime, create_engine, Index
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import ProgrammingError
 from dotenv import load_dotenv
 from datetime import datetime
+import dask.dataframe as dd
+import pandas as pd
 
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()
@@ -26,13 +29,16 @@ class TatetiWinner(Base):
     id = Column(Integer, primary_key=True)
     discord_id = Column(String, nullable=False)
     username = Column(String, nullable=False)
-    win_date = Column(DateTime, default=datetime.timezone.utc)
+    win_date = Column(DateTime, default=lambda: datetime.now(pytz.utc))
 
 class FAQ(Base):
     __tablename__ = 'faq'
     id = Column(Integer, primary_key=True)
     question = Column(String, nullable=False)
     answer = Column(String, nullable=False)
+
+    # Crear un índice en la columna 'question' para mejorar la eficiencia de las búsquedas
+    __table_args__ = (Index('ix_faq_question', 'question'),)
 
 # Obtener la URL de la base de datos desde la variable de entorno
 DATABASE_URL = os.getenv("DB_URI")
@@ -67,7 +73,7 @@ def validate_faq_data(faq):
         return False
     return True
 
-# Insertar las preguntas y respuestas en la base de datos
+# Insertar las preguntas y respuestas en la base de datos usando yield
 def insert_faq_data():
     session = next(get_db())
     try:
@@ -87,3 +93,17 @@ def insert_faq_data():
 
 # Ejecutar la función para insertar los datos
 insert_faq_data()
+
+# Función para obtener preguntas y respuestas usando dask
+def get_questions_and_answers(session):
+    faqs = session.query(FAQ).yield_per(1000)  # Usar yield_per para manejar grandes cantidades de datos
+    # Convertir la lista de FAQ en un DataFrame de pandas
+    df = pd.DataFrame([(faq.question, faq.answer) for faq in faqs], columns=['question', 'answer'])
+    # Convertir el DataFrame de pandas en un DataFrame de dask
+    ddf = dd.from_pandas(df, npartitions=1)
+    return ddf
+
+# Ejemplo de uso de get_questions_and_answers
+session = next(get_db())
+ddf = get_questions_and_answers(session)
+print(ddf.head())
