@@ -59,13 +59,20 @@ class OyenteCog(commands.Cog):
                 logger.debug(f"Matched question: {question}")
                 logger.debug(f"Matched answer: {answer}")
                 if question and answer:
-                    await message.channel.send(answer)  # Enviar la respuesta al canal
+                    # Enviar la respuesta al canal y eliminarla después de 40 segundos
+                    bot_message = await message.channel.send(answer, delete_after=40)
+                    # Eliminar el mensaje del usuario después de 40 segundos
+                    await message.delete(delay=40)
                 else:
-                    await message.channel.send("Lo siento, no entiendo la pregunta. ¿Podrías reformularla?")
+                    # Enviar mensaje de error y eliminarlo después de 40 segundos
+                    bot_message = await message.channel.send("Lo siento, no entiendo la pregunta. ¿Podrías reformularla?", delete_after=40)
+                    # Eliminar el mensaje del usuario después de 40 segundos
+                    await message.delete(delay=40)
                     logger.debug("No matching question and answer found.")
             except Exception as e:
                 logger.error(f"Error al procesar el mensaje: {e}")
-                await message.channel.send("Ocurrió un error al procesar tu pregunta. Por favor, intenta nuevamente más tarde.")
+                bot_message = await message.channel.send("Ocurrió un error al procesar tu pregunta. Por favor, intenta nuevamente más tarde.", delete_after=40)
+                await message.delete(delay=40)
             finally:
                 session.close()  # Cerrar la sesión de la base de datos
 

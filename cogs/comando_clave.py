@@ -1,7 +1,3 @@
-# cogs/comando_clave.py
-#aqui se importa el diccionario de palabras clave
-# tratando de yaudar a los usuarios a entender las palabras clave que pueden usar en el bot
-
 from discord.ext import commands
 from acciones.palabras_clave import palabras_clave
 import logging
@@ -19,7 +15,12 @@ class ClaveCog(commands.Cog):
         mensaje = "Aquí están las palabras clave que puedes usar:\n\n"
         for clave, descripcion in palabras_clave.items():
             mensaje += f"**{clave}**: {descripcion}\n"
-        await ctx.send(mensaje)
+        
+        # Enviar el mensaje y eliminarlo después de 30 segundos
+        await ctx.send(mensaje, delete_after=30)
+        
+        # Eliminar el mensaje del usuario después de 30 segundos
+        await ctx.message.delete(delay=30)
 
 # Función para registrar el cog en el bot
 async def setup(bot):

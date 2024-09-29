@@ -11,8 +11,12 @@ class Llama(commands.Cog):
         self.client = initialize_groq_client_and_model(GROQ_API_KEY, GROQ_MODEL)
 
     @commands.command(name='llama')
-    async def llama(self, ctx, *, user_message: str):
+    async def llama(self, ctx, *, user_message: str = None):
         """Comando para interactuar con el modelo Groq."""
+        if not user_message:
+            await ctx.send("Hola, debes hacerme una pregunta sobre código para que pueda responder.")
+            return
+
         try:
             if not token_manager.use_tokens():
                 await ctx.send("Se ha alcanzado el límite diario de tokens. Por favor, inténtalo de nuevo mañana.")
