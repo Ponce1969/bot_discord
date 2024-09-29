@@ -9,8 +9,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import ProgrammingError
 from dotenv import load_dotenv
 from datetime import datetime
-import dask.dataframe as dd
-import pandas as pd
 
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()
@@ -36,6 +34,7 @@ class FAQ(Base):
     id = Column(Integer, primary_key=True)
     question = Column(String, nullable=False)
     answer = Column(String, nullable=False)
+    keyword = Column(String, nullable=False)  # Nueva columna para palabras clave
 
     # Crear un índice en la columna 'question' para mejorar la eficiencia de las búsquedas
     __table_args__ = (Index('ix_faq_question', 'question'),)
@@ -60,16 +59,21 @@ def init_db():
 # Inicializar la base de datos
 init_db()
 
-# Definir las preguntas y respuestas
+# Definir las preguntas, respuestas y palabras clave
 faq_data = [
-    {"question": "¿Qué puedes hacer?", "answer": ">ayuda y verás todo lo que puedo hacer en el chat por ti!!"},
-    {"question": "¿Dónde puedo jugar?", "answer": "juega en el chat_juego_aventura !"},
-    # Agrega más preguntas y respuestas aquí
+    {"question": "¿Qué puedes hacer?", "answer": ">ayuda y verás todo lo que puedo hacer en el chat por ti!!", "keyword": "hacer"},
+    {"question": "¿Dónde puedo jugar?", "answer": "juega en el chat_juego_aventura !", "keyword": "jugar"},
+    {"question": "¿Tenemos alguna IA ?", "answer": "Si en el chat tenemos a Gemini y LLama usa > y nombre de la IA!", "keyword": "IA"},
+    {"question": "¿Que juegos hay?", "answer": "Tenemos tateti y aventura !", "keyword": "juegos"},
+    {"question": "¿Que musica tenemos?", "answer": "Nos conectamos a la api de youtube y podemos ver videos en el chat!", "keyword": "musica"},
+    {"question": "¿Que hacen en este chat general?", "answer": "Estudiamos Python y usamos sus librerias!", "keyword": "chat"},
+    {"question": "¿Necesito ayuda?", "answer": "si quieres ayuda con algun codigo pegalo en el chat con carbon o CodeSnap!", "keyword": "ayuda"},
+    # Agrega más preguntas, respuestas y palabras clave aquí
 ]
 
 # Validar los datos antes de insertarlos
 def validate_faq_data(faq):
-    if not faq.get("question") or not faq.get("answer"):
+    if not faq.get("question") or not faq.get("answer") or not faq.get("keyword"):
         return False
     return True
 
@@ -79,10 +83,11 @@ def insert_faq_data():
     try:
         for faq in faq_data:
             if validate_faq_data(faq):
-                faq_obj = FAQ(question=faq["question"], answer=faq["answer"])
-                session.add(faq_obj)
-            else:
-                print(f"Datos inválidos: {faq}")
+                # Verificar si la pregunta ya existe en la base de datos
+                existing_faq = session.query(FAQ).filter_by(question=faq["question"], answer=faq["answer"], keyword=faq["keyword"]).first()
+                if not existing_faq:
+                    faq_obj = FAQ(question=faq["question"], answer=faq["answer"], keyword=faq["keyword"])
+                    session.add(faq_obj)
         session.commit()
         print("Datos insertados correctamente en la tabla FAQ.")
     except Exception as e:
@@ -93,17 +98,3 @@ def insert_faq_data():
 
 # Ejecutar la función para insertar los datos
 insert_faq_data()
-
-# Función para obtener preguntas y respuestas usando dask
-def get_questions_and_answers(session):
-    faqs = session.query(FAQ).yield_per(1000)  # Usar yield_per para manejar grandes cantidades de datos
-    # Convertir la lista de FAQ en un DataFrame de pandas
-    df = pd.DataFrame([(faq.question, faq.answer) for faq in faqs], columns=['question', 'answer'])
-    # Convertir el DataFrame de pandas en un DataFrame de dask
-    ddf = dd.from_pandas(df, npartitions=1)
-    return ddf
-
-# Ejemplo de uso de get_questions_and_answers
-session = next(get_db())
-ddf = get_questions_and_answers(session)
-print(ddf.head())

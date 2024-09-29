@@ -25,6 +25,8 @@ Comandos disponibles para el bot:
 - **>vigilante**: cuida las malas palabras, si las detecta, te avisa y te da una advertencia, al llegar a 3 advertencias, te banea por 24 horas.
 - **>tateti**: Inicia un nuevo juego de tateti, debes ingresar una opcion de jugar contra el bot o contra otro usuario.
 - **>tateti_ganadores**: Muestra la lista de ganadores del juego de tateti.
+- **>encuesta**: Crea una encuesta con varias opciones, debes ingresar la pregunta y las opciones, entre comillas para el embed.
+- **>claves**: Muestra las palabras clave que puedes usar, para el comando  oyente y el bot responde, sin necesidad de usar el prefijo >.
 - **oyente**: preguntas y respuestas, comunes y el bot responde usamos fuzzywuzzy, python-Levenshtein.
 \`\`\`
 """
