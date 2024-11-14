@@ -9,15 +9,13 @@ import unicodedata
 import re
 
 # Configurar el logger
-logging.basicConfig(level=logging.DEBUG)  # Cambiar a DEBUG para más detalles
+logging.basicConfig(level=logging.DEBUG)  # Cambiar a INFO en producción
 logger = logging.getLogger(__name__)
 
 def normalize_text(text):
-    # Eliminar acentos
+    # Eliminar acentos, convertir a minúsculas y eliminar caracteres especiales
     text = unicodedata.normalize('NFKD', text).encode('ASCII', 'ignore').decode('ASCII')
-    # Convertir a minúsculas
     text = text.lower()
-    # Eliminar caracteres especiales
     text = re.sub(r'[^a-z0-9\s]', '', text)
     return text
 
@@ -29,7 +27,7 @@ class OyenteCog(commands.Cog):
             "jugar": ["¿Dónde puedo jugar?", "¿Cómo puedo jugar?", "¿Qué podemos jugar?"],
             "ayuda": ["¿Puedes ayudarme?", "¿Necesito ayuda"],
             "juegos": ["¿Qué juegos hay?", "¿Puedo jugar algún juego?"],
-            "IA": ["¿Tenemos alguna IA?", "¿Hay una IA en el canal?", "¿Qué IA tenemos?", "¿Qué IA tenemos en el canal?", "¿Tenemos alguna IA en el canal?"],
+            "ia": ["¿Tenemos alguna IA?", "¿Hay una IA en el canal?", "¿Qué IA tenemos?", "¿Tenemos alguna IA en el canal?"],
             "musica": ["¿Qué música tenemos?", "¿Puedo escuchar música?"],
             "chat": ["¿Qué hacen en este chat general?", "¿Cuál es el propósito de este chat?"],
             # Agrega más palabras clave y preguntas aquí
@@ -40,11 +38,14 @@ class OyenteCog(commands.Cog):
         if message.author.bot:
             return  # Ignorar mensajes de otros bots
 
+        if message.content.startswith('>'):
+            return  # Ignorar mensajes que comienzan con '>'
+
         user_input = normalize_text(message.content)
         logger.debug(f"Normalized user input: {user_input}")
 
-        # Filtrar las keywords de manera eficiente
-        matched_keywords = [keyword for keyword in self.keywords.keys() if normalize_text(keyword) in user_input]
+        user_words = user_input.split()
+        matched_keywords = [keyword for keyword in self.keywords.keys() if keyword in user_words]
         logger.debug(f"Matched keywords: {matched_keywords}")
 
         if not matched_keywords:

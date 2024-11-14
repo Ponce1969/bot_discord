@@ -45,7 +45,7 @@ def fuzzy_match(user_input: str, session: Session, keywords: list):
     best_match = process.extractOne(user_input, questions)
     logger.debug(f"Best match: {best_match}")
     
-    if best_match and best_match[1] >= 60:  # Umbral de similitud del 60%
+    if best_match and best_match[1] >= 70:  # Umbral de similitud del 70%
         answer = filtered_df[filtered_df['question'] == best_match[0]]['answer'].values[0]
         return best_match[0], answer
     return None, None
