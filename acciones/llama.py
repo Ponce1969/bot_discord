@@ -54,7 +54,7 @@ def set_model_and_context(client: Groq, model: Optional[str], context: dict):
         client.model = model
     client.context = context
 
-def initialize_groq_client_and_model(api_key: str, model: Optional[str] = "llama-3.1-70b-versatile") -> Groq:
+def initialize_groq_client_and_model(api_key: str, model: Optional[str] = "llama-3.3-70b-versatile") -> Groq:
     """Inicializa el cliente de Groq y el modelo especificado."""
     client = initialize_groq_client(api_key)
     initial_context = create_initial_context()
