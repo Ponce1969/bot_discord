@@ -5,6 +5,8 @@ Proporciona comandos para interactuar con los modelos de IA de Gemini.
 import logging
 from typing import List, Optional
 from datetime import datetime, timezone
+import io
+from PIL import Image
 
 import discord
 import google.generativeai as genai
@@ -15,12 +17,13 @@ from config.ia_config import (
     safety_settings,
     MAX_MESSAGE_LENGTH,
     MAX_HISTORY_LENGTH,
-    EMBED_COLORS
+    EMBED_COLORS,
+    SUPPORTED_MIME_TYPES
 )
 
-# Configuración del logging
+# Configuración del logging solo para errores
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.ERROR,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
@@ -36,19 +39,17 @@ class ComandoGemini(commands.Cog):
             bot (commands.Bot): Instancia del bot de Discord
         """
         self.bot = bot
-        # Usar el nombre correcto del modelo
         self.text_model = genai.GenerativeModel(
-            model_name="gemini-2.0-flash",  # Actualizado al nuevo modelo
+            model_name="gemini-2.0-flash",
             generation_config=text_generation_config,
             safety_settings=safety_settings
         )
         self.image_model = genai.GenerativeModel(
-            model_name="gemini-pro-vision",  # Cambiado de gemini-1.0-pro-vision a gemini-pro-vision
+            model_name="gemini-1.5-pro",  # Actualizado al nuevo modelo
             generation_config=image_generation_config,
             safety_settings=safety_settings
         )
-        self.chats = {}  # Diccionario para mantener chats por usuario
-        logger.info("ComandoGemini inicializado correctamente")
+        self.chats = {}
 
     def _get_user_chat(self, user_id: int) -> genai.ChatSession:
         """
@@ -72,7 +73,6 @@ class ComandoGemini(commands.Cog):
             ctx (commands.Context): Contexto del comando
             text (str): Texto a enviar
         """
-        # Crear un embed para la respuesta
         embed = discord.Embed(
             color=EMBED_COLORS["default"],
             timestamp=datetime.now(timezone.utc)
@@ -80,18 +80,40 @@ class ComandoGemini(commands.Cog):
         embed.set_footer(text=f"Solicitado por {ctx.author.display_name}", 
                         icon_url=ctx.author.avatar.url if ctx.author.avatar else None)
 
-        # Dividir el texto en chunks respetando el límite de Discord para embeds
         chunks = [text[i:i + 4096] for i in range(0, len(text), 4096)]
-        embed.description = chunks[0]  # Asignar el primer chunk al embed
-        await ctx.send(embed=embed)  # Enviar el primer embed
+        embed.description = chunks[0]
+        await ctx.send(embed=embed)
 
-        for i, chunk in enumerate(chunks[1:]):  # Iterar sobre los chunks restantes
+        for chunk in chunks[1:]:
             new_embed = discord.Embed(
                 description=chunk,
                 color=EMBED_COLORS["default"],
                 timestamp=datetime.now(timezone.utc)
             )
-            await ctx.send(embed=new_embed)  # Enviar los embeds restantes
+            await ctx.send(embed=new_embed)
+
+    async def _process_image(self, image_data: bytes) -> Image.Image:
+        """
+        Procesa los bytes de la imagen y la convierte a formato PIL.
+        
+        Args:
+            image_data (bytes): Bytes de la imagen
+            
+        Returns:
+            Image.Image: Imagen procesada
+        """
+        image = Image.open(io.BytesIO(image_data))
+        
+        # Convertir a RGB si es necesario
+        if image.mode not in ("RGB", "RGBA"):
+            image = image.convert("RGB")
+            
+        # Redimensionar si es necesario según los límites de Gemini
+        width, height = image.size
+        if width > 768 or height > 768:
+            image.thumbnail((768, 768), Image.Resampling.LANCZOS)
+            
+        return image
 
     @commands.command(name='gemini')
     async def gemini_command(self, ctx: commands.Context, *, prompt: str):
@@ -105,13 +127,9 @@ class ComandoGemini(commands.Cog):
         """
         try:
             async with ctx.typing():
-                logger.info(f"Procesando prompt de usuario {ctx.author.id}: {prompt[:50]}...")
-                
                 chat = self._get_user_chat(ctx.author.id)
                 response = chat.send_message(prompt)
-                
                 await self._chunk_and_send(ctx, response.text)
-                logger.info(f"Respuesta enviada a usuario {ctx.author.id}")
                 
         except Exception as e:
             logger.error(f"Error al procesar prompt: {str(e)}")
@@ -138,7 +156,6 @@ class ComandoGemini(commands.Cog):
                     color=EMBED_COLORS["success"]
                 )
                 await ctx.send(embed=embed)
-                logger.info(f"Chat reiniciado para usuario {user_id}")
             else:
                 embed = discord.Embed(
                     description="No hay historial de chat para reiniciar.",
@@ -155,26 +172,51 @@ class ComandoGemini(commands.Cog):
             await ctx.send(embed=embed)
 
     @commands.command(name='gemini_imagen')
-    async def gemini_imagen(self, ctx: commands.Context, *, prompt: str = ""):
+    async def gemini_imagen(self, ctx: commands.Context, *, prompt: str = None):
         """
         Procesa una imagen adjunta con Gemini Vision.
-        Uso: >gemini_imagen [descripción opcional]
+        Uso: 
+        1. Adjunta una imagen
+        2. Responde a la imagen con >gemini_imagen [descripción opcional]
         
         Args:
             ctx (commands.Context): Contexto del comando
             prompt (str): Prompt opcional para la imagen
         """
         try:
-            if not ctx.message.attachments:
-                embed = discord.Embed(
-                    title="❌ Error",
-                    description="Por favor, adjunta una imagen para analizar.",
-                    color=EMBED_COLORS["error"]
-                )
-                await ctx.send(embed=embed)
-                return
+            # Verificar si es una respuesta a un mensaje
+            reference = ctx.message.reference
+            if reference and reference.resolved:
+                # Obtener el mensaje al que se está respondiendo
+                original_message = reference.resolved
+                if original_message.attachments:
+                    attachment = original_message.attachments[0]
+                else:
+                    embed = discord.Embed(
+                        title="❌ Error",
+                        description="El mensaje al que respondes debe contener una imagen.",
+                        color=EMBED_COLORS["error"]
+                    )
+                    await ctx.send(embed=embed)
+                    return
+            else:
+                # Verificar si el mensaje actual tiene una imagen adjunta
+                if ctx.message.attachments:
+                    attachment = ctx.message.attachments[0]
+                else:
+                    embed = discord.Embed(
+                        title="❌ Error",
+                        description="Para usar este comando:\n1. Adjunta una imagen\n2. Responde a la imagen con >gemini_imagen [descripción opcional]",
+                        color=EMBED_COLORS["error"]
+                    )
+                    await ctx.send(embed=embed)
+                    return
+            
+            # Establecer prompt predeterminado si no se proporciona
+            if prompt is None:
+                prompt = "Describe esta imagen"
 
-            attachment = ctx.message.attachments[0]
+            # Verificar tipo MIME
             if not attachment.content_type.startswith('image/'):
                 embed = discord.Embed(
                     title="❌ Error",
@@ -184,66 +226,35 @@ class ComandoGemini(commands.Cog):
                 await ctx.send(embed=embed)
                 return
 
+            if attachment.content_type not in SUPPORTED_MIME_TYPES:
+                supported_formats = ", ".join(t.split('/')[-1].upper() for t in SUPPORTED_MIME_TYPES)
+                embed = discord.Embed(
+                    title="❌ Error",
+                    description=f"Formato de imagen no soportado. Por favor usa: {supported_formats}",
+                    color=EMBED_COLORS["error"]
+                )
+                await ctx.send(embed=embed)
+                return
+
             async with ctx.typing():
+                # Leer y procesar la imagen
                 image_data = await attachment.read()
-                response = self.image_model.generate_content([prompt, image_data] if prompt else [image_data])
+                processed_image = await self._process_image(image_data)
+                
+                # Generar contenido con la imagen procesada
+                response = self.image_model.generate_content(
+                    contents=[prompt, processed_image],
+                    stream=True
+                )
+                response.resolve()
+                
                 await self._chunk_and_send(ctx, response.text)
-                logger.info(f"Imagen procesada para usuario {ctx.author.id}")
 
         except Exception as e:
-            logger.error(f"Error al procesar imagen: {str(e)}")
+            logger.error(f"Error al procesar imagen: {str(e)}", exc_info=True)
             embed = discord.Embed(
                 title="❌ Error",
                 description=f"Error al procesar la imagen: {str(e)}",
-                color=EMBED_COLORS["error"]
-            )
-            await ctx.send(embed=embed)
-
-    @commands.command(name='gemini_detectar_objetos')
-    async def gemini_detectar_objetos(self, ctx: commands.Context):
-        """
-        Detecta objetos en una imagen y devuelve las coordenadas de los cuadros de límite.
-        Uso: >gemini_detectar_objetos [imagen adjunta]
-        """
-        try:
-            if not ctx.message.attachments:
-                embed = discord.Embed(
-                    title="❌ Error",
-                    description="Por favor, adjunta una imagen para analizar.",
-                    color=EMBED_COLORS["error"]
-                )
-                await ctx.send(embed=embed)
-                return
-
-            attachment = ctx.message.attachments[0]
-            if not attachment.content_type.startswith('image/'):
-                embed = discord.Embed(
-                    title="❌ Error",
-                    description="El archivo adjunto debe ser una imagen.",
-                    color=EMBED_COLORS["error"]
-                )
-                await ctx.send(embed=embed)
-                return
-
-            async with ctx.typing():
-                image_data = await attachment.read()
-                prompt = (
-                    "Return a bounding box for each of the objects in this image "
-                    "in [ymin, xmin, ymax, xmax] format."
-                )
-                client = genai.Client(api_key="YOUR_API_KEY")
-                response = client.models.generate_content(
-                    model="gemini-2.0-flash",
-                    contents=[image_data, prompt]
-                )
-                await self._chunk_and_send(ctx, response.text)
-                logger.info(f"Objetos detectados para usuario {ctx.author.id}")
-
-        except Exception as e:
-            logger.error(f"Error al detectar objetos: {str(e)}")
-            embed = discord.Embed(
-                title="❌ Error",
-                description=f"Error al detectar objetos: {str(e)}",
                 color=EMBED_COLORS["error"]
             )
             await ctx.send(embed=embed)
@@ -256,4 +267,3 @@ async def setup(bot: commands.Bot):
         bot (commands.Bot): Instancia del bot de Discord
     """
     await bot.add_cog(ComandoGemini(bot))
-    logger.info("ComandoGemini Cog añadido al bot")

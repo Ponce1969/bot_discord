@@ -13,6 +13,8 @@ Comandos disponibles para el bot:
 - **>youtube**: Busca un video en YouTube, debes ingresar el tipo de musica (tango).
 - **>info**: Muestra información del servidor mas temperatura del cpu.
 - **>gemini**: Inicia una conversación con la IA de Gemini.
+- **>gemini_imagen**: Muestra una foto a la IA y te dira su contenido, en varios formatos.
+- **>gemini_reset**: Reinicia la conversación con la IA de Gemini.
 - **>abrazo**: Abraza a un usuario, debes ingresar el nombre del @usuario.
 - **>abrazo**: Al no ingresar un nombre, el bot abraza a nadie.
 - **>me_abrazo**: se abraza a si mismo.

@@ -1,14 +1,10 @@
 from discord.ext import commands
-from acciones.llama import initialize_groq_client_and_model, TokenManager
-from config.lla_config import GROQ_API_KEY, GROQ_MODEL
-
-# Inicializar el gestor de tokens
-token_manager = TokenManager()
+from acciones.llama import token_manager, groq_handler
 
 class Llama(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.client = initialize_groq_client_and_model(GROQ_API_KEY, GROQ_MODEL)
+        self.groq_handler = groq_handler
 
     @commands.command(name='llama')
     async def llama(self, ctx, *, user_message: str = None):
@@ -18,26 +14,19 @@ class Llama(commands.Cog):
             return
 
         try:
+            # Verificar si podemos usar tokens
             if not token_manager.use_tokens():
                 await ctx.send("Se ha alcanzado el límite diario de tokens. Por favor, inténtalo de nuevo mañana.")
                 return
 
             # Obtener la respuesta del modelo Groq
-            response = self.client.chat.completions.create(
-                messages=[
-                    {"role": "system", "content": "Eres un experto en Python y desarrollo de software en Python. Puedes responder preguntas sobre sintaxis, bibliotecas, frameworks, buenas prácticas y más. Recuerda que solo debes responder sobre temas relacionados con Python."},
-                    {"role": "user", "content": user_message}
-                ],
-                model=self.client.model,
-            ).choices[0].message.content
+            response = await self.groq_handler.get_response(user_message)
 
-            # Dividir la respuesta en partes más pequeñas si es necesario
-            max_length = 2000
-            response_parts = [response[i:i + max_length] for i in range(0, len(response), max_length)]
+            # Crear un embed con la respuesta
+            embed = self.groq_handler.create_response_embed(ctx.author.name, response)
 
-            # Enviar cada parte del mensaje por separado
-            for part in response_parts:
-                await ctx.send(part)
+            # Enviar el embed
+            await ctx.send(embed=embed)
 
         except Exception as e:
             # Manejar excepciones y enviar un mensaje de error

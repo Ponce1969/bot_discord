@@ -1,7 +1,31 @@
 # Archivos específicos
-.env
 datosBot/
 
 # Eliminar todos los python cache
 *.pyc
 **/__pycache__/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+venv/
+ENV/
+env/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# IDE / Editor specific
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

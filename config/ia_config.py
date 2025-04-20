@@ -2,7 +2,7 @@
 Configuración para los modelos de IA Gemini.
 Este módulo contiene todas las configuraciones necesarias para los modelos de texto e imagen.
 """
-from typing import Dict, List
+from typing import Dict, List, Set
 
 # Configuración para generación de texto
 text_generation_config: Dict = {
@@ -18,6 +18,15 @@ image_generation_config: Dict = {
     "top_p": 1,
     "top_k": 32,
     "max_output_tokens": 500,
+}
+
+# Tipos MIME soportados por Gemini Vision
+SUPPORTED_MIME_TYPES: Set[str] = {
+    'image/png',
+    'image/jpeg',
+    'image/webp',
+    'image/heic',
+    'image/heif'
 }
 
 # Configuración de seguridad para filtrar contenido inapropiado
@@ -49,3 +58,4 @@ EMBED_COLORS = {
     "error": 0xe74c3c,    # Rojo para errores
     "warning": 0xf1c40f   # Amarillo para advertencias
 }
+

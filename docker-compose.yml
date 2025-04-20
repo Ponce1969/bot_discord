@@ -6,12 +6,15 @@ services:
     env_file:
       - .env
     volumes:
-      - /home/gonzapython/Documentos/vscode_codigo/Discord/datosBot:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 5
+    ports:
+      - "5432:5432"
+    restart: always
 
   pgadmin:
     image: dpage/pgadmin4
@@ -20,22 +23,24 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
       PGADMIN_DEFAULT_PASSWORD: "admin"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
     ports:
       - "8082:80"
     depends_on:
       - postgres
+    restart: always
 
   bot:
     image: python:3.10
     command: >
       sh -c "pip install poetry &&
              poetry config virtualenvs.create false &&
+             poetry lock &&
              poetry install &&
+             echo '>>> Dependencies installed, attempting to start bot...' &&
              python /app/pythonbot.py"
     volumes:
-      - ./config:/app/config
-      - ./base:/app/base 
-      - ./cogs:/app/cogs 
       - .:/app
     env_file:
       - .env
@@ -45,6 +50,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    restart: always
 
   nginx:
     image: nginx:alpine
@@ -52,7 +58,9 @@ services:
       - "8080:80"
     volumes:
       - ./imagenes:/usr/share/nginx/html/imagenes
-      - /home/gonzapython/Documentos/vscode_codigo/Discord/nginx/nginx.config:/etc/nginx/nginx.conf
+      - ./nginx/nginx.config:/etc/nginx/nginx.conf
+    restart: always
 
 volumes:
   db_data:
+  pgadmin_data:
