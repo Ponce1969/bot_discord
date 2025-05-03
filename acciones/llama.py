@@ -3,44 +3,50 @@ import datetime
 import asyncio
 from groq import Groq
 from typing import Optional
-from discord import Embed 
+from discord import Embed
 import pytz
-
+from base.database import increment_llama_metric, add_response_time
 from config.lla_config import GROQ_API_KEY, GROQ_MODEL
 
 # Configurar la zona horaria de Uruguay
 URUGUAY_TZ = pytz.timezone('America/Montevideo')
 
+# TokenManager puede mantenerse si deseas un límite diario adicional, pero las métricas reales se guardan en la base de datos.
 class TokenManager:
     def __init__(self, daily_limit=500, tokens_per_request=10):
         self.daily_limit = daily_limit
         self.tokens_per_request = tokens_per_request
         self.tokens_used = 0
-        # Calcular el inicio del próximo día en Uruguay
         now_uy = datetime.datetime.now(URUGUAY_TZ)
         tomorrow_uy = now_uy.date() + datetime.timedelta(days=1)
         self.reset_time = URUGUAY_TZ.localize(datetime.datetime.combine(tomorrow_uy, datetime.datetime.min.time()))
 
     def reset_tokens(self):
-        """Resetea el contador de tokens si ha pasado la hora de reseteo en Uruguay."""
         if datetime.datetime.now(URUGUAY_TZ) >= self.reset_time:
             self.tokens_used = 0
-            # Calcular el próximo reset para el día siguiente en Uruguay
             now_uy = datetime.datetime.now(URUGUAY_TZ)
             tomorrow_uy = now_uy.date() + datetime.timedelta(days=1)
             self.reset_time = URUGUAY_TZ.localize(datetime.datetime.combine(tomorrow_uy, datetime.datetime.min.time()))
 
     def can_use_tokens(self) -> bool:
-        """Verifica si se pueden usar más tokens."""
         self.reset_tokens()
         return self.tokens_used + self.tokens_per_request <= self.daily_limit
 
     def use_tokens(self) -> bool:
-        """Usa tokens si es posible."""
         if self.can_use_tokens():
             self.tokens_used += self.tokens_per_request
             return True
         return False
+
+# Helper para registrar métricas desde comandos
+async def registrar_metricas_llama(user_id, tokens_usados, response_time, fue_archivo=False, fallo_api=False):
+    increment_llama_metric(user_id, "llama_uses")
+    increment_llama_metric(user_id, "tokens_used", tokens_usados)
+    add_response_time(user_id, response_time)
+    if fue_archivo:
+        increment_llama_metric(user_id, "responses_as_file")
+    if fallo_api:
+        increment_llama_metric(user_id, "api_failures")
 
 class GroqHandler:
 
@@ -112,3 +118,16 @@ class GroqHandler:
 # Inicializar instancias globales para usar en otros módulos
 token_manager = TokenManager()
 groq_handler = GroqHandler(api_key=GROQ_API_KEY, model=GROQ_MODEL)
+
+class GroqSession:
+    """Context manager asíncrono para manejar sesiones con tokens."""
+    def __init__(self, token_manager):
+        self.token_manager = token_manager
+        self.allowed = False
+
+    async def __aenter__(self):
+        self.allowed = self.token_manager.use_tokens()
+        return self.allowed
+
+    async def __aexit__(self, exc_type, exc, tb):
+        pass  # Aquí puedes loggear errores si lo deseas
