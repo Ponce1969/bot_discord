@@ -30,7 +30,9 @@ def ayuda(categoria: str = None) -> str:
             "> **>llama_stats**\n> _Muestra tus estadísticas personales de uso de Llama._\n\n"
             "> **>llama_stats True**\n> _Muestra las estadísticas globales del día para la IA Llama._\n\n"
             "> **>llama_dashboard**\n> _Visualiza un resumen visual (tabla) de las métricas globales de la IA Llama._\n\n"
-            "> **>gemini [pregunta]**\n> _Habla con la IA Gemini sobre cualquier tema._\n"
+            "> **>gemini [pregunta]**\n> _Habla con la IA Gemini sobre cualquier tema._\n> Ejemplo: `>gemini ¿Qué es la computación cuántica?`\n\n"
+            "> **>gemini_imagen [descripción opcional]**\n> _Sube una imagen y Gemini te dirá qué ve en ella._\n> Ejemplo: adjunta una imagen y escribe `>gemini_imagen ¿Qué hay en esta foto?`\n> También puedes responder a un mensaje con imagen usando `>gemini_imagen`\n\n"
+            "> **>gemini_reset**\n> _Reinicia tu historial de conversación con Gemini._\n"
         )
     elif categoria == "juegos":
         return (
