@@ -52,10 +52,37 @@ safety_settings: List[Dict] = [
 # Configuraciones de Discord
 MAX_MESSAGE_LENGTH = 2000  # Límite de caracteres por mensaje de Discord
 MAX_HISTORY_LENGTH = 10    # Máximo número de mensajes en el historial
+
+# Colores base para rotación en embeds
+BASE_EMBED_COLORS = [
+    0x50C878,  # Esmeralda (verde)
+    0x4287F5,  # Azul vibrante
+    0x9400D3,  # Púrpura oscuro
+    0xFF8C00,  # Naranja oscuro
+    0xDC143C   # Carmesí
+]
+
+# Mapeo de códigos de idioma para instrucciones a Gemini
+LANGUAGE_MAP = {
+    "es": "español",
+    "en": "English",
+    "fr": "français",
+    "pt": "português",
+    "it": "italiano",
+    "de": "Deutsch",
+    "ru": "русский",
+    "zh": "中文",
+    "ja": "日本語",
+    "ko": "한국어"
+}
+
+# Tiempo máximo de espera para respuestas de Gemini (en segundos)
+GEMINI_TIMEOUT = 20.0
+
+# Colores para embeds
 EMBED_COLORS = {
     "default": 0x3498db,  # Azul para mensajes normales
     "success": 0x2ecc71,  # Verde para éxitos
     "error": 0xe74c3c,    # Rojo para errores
     "warning": 0xf1c40f   # Amarillo para advertencias
 }
-

@@ -30,8 +30,9 @@ def ayuda(categoria: str = None) -> str:
             "> **>llama_stats**\n> _Muestra tus estadísticas personales de uso de Llama._\n\n"
             "> **>llama_stats True**\n> _Muestra las estadísticas globales del día para la IA Llama._\n\n"
             "> **>llama_dashboard**\n> _Visualiza un resumen visual (tabla) de las métricas globales de la IA Llama._\n\n"
-            "> **>gemini [pregunta]**\n> _Habla con la IA Gemini sobre cualquier tema o analiza imágenes._\n> _Ahora con memoria persistente que mantiene tu historial de chat incluso cuando el bot se reinicia._\n> Ejemplos:\n> `>gemini ¿Qué es la computación cuántica?`\n> `>gemini` (adjuntando una imagen)\n> `>gemini Describe esta foto en detalle` (adjuntando una imagen)\n\n"
-            "> **>gemini_reset**\n> _Reinicia tu historial de conversación con Gemini para empezar desde cero._\n"
+            "> **>gemini [--lang código] [pregunta]**\n> _Habla con la IA Gemini sobre cualquier tema o analiza imágenes._\n> _Con memoria persistente y soporte multilingüe. Respuestas en embeds coloridos._\n> Ejemplos:\n> `>gemini ¿Qué es la computación cuántica?`\n> `>gemini --lang en Tell me about quantum computing`\n> `>gemini --lang fr` (adjuntando una imagen)\n\n"
+            "> **>gemini_reset**\n> _Reinicia tu historial de conversación con Gemini para empezar desde cero._\n\n"
+            "> **>gemini_help**\n> _Muestra información detallada sobre el uso de Gemini y los idiomas soportados._\n"
         )
     elif categoria == "juegos":
         return (

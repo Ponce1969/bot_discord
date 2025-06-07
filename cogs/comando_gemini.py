@@ -17,7 +17,11 @@ from config.ia_config import (
     text_generation_config,
     safety_settings,
     EMBED_COLORS,
-    SUPPORTED_MIME_TYPES
+    SUPPORTED_MIME_TYPES,
+    BASE_EMBED_COLORS,
+    LANGUAGE_MAP,
+    GEMINI_TIMEOUT,
+    MAX_HISTORY_LENGTH
 )
 from base.database import (
     get_or_create_gemini_session,
@@ -33,9 +37,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
-# Tiempo máximo de espera para respuestas de Gemini (en segundos)
-GEMINI_TIMEOUT = 20.0
 
 class ComandoGemini(commands.Cog):
     """Cog para manejar comandos relacionados con Gemini AI."""
@@ -65,13 +66,15 @@ class ComandoGemini(commands.Cog):
         self.chat_cache = {}
         # Crear pool de hilos para operaciones bloqueantes
         self.thread_pool = ThreadPoolExecutor(max_workers=5)
+        # Inicializar índice para rotación de colores
+        self.embed_color_index = 0
         # Limpiar sesiones inactivas (opcional)
         try:
             prune_old_sessions(days_inactive=30)
             logger.info("Se han limpiado sesiones inactivas de más de 30 días")
         except Exception as e:
             logger.error(f"Error al limpiar sesiones antiguas: {e}", exc_info=True)
-    
+
     async def cog_unload(self):
         """
         Se llama cuando el cog es descargado.
@@ -81,10 +84,10 @@ class ComandoGemini(commands.Cog):
             self.thread_pool.shutdown(wait=True)
             logger.info("ThreadPoolExecutor cerrado correctamente al descargar ComandoGemini.")
 
-    def _get_user_chat(self, user_id: int) -> genai.ChatSession:
+    async def _get_user_chat_session(self, user_id: int) -> genai.ChatSession:
         """
         Obtiene o crea una sesión de chat para un usuario específico.
-        Ahora utiliza la base de datos para persistencia.
+        Utiliza la base de datos para persistencia.
         
         Args:
             user_id (int): ID del usuario de Discord
@@ -100,7 +103,7 @@ class ComandoGemini(commands.Cog):
         db_session = get_or_create_gemini_session(user_id)
         
         # Recuperamos los mensajes históricos de la BD
-        db_messages = get_session_messages(db_session.id, limit=20)
+        db_messages = get_session_messages(db_session.id, limit=MAX_HISTORY_LENGTH)
         
         # Convertimos los mensajes de la BD al formato que espera Gemini API
         history = []
@@ -120,32 +123,36 @@ class ComandoGemini(commands.Cog):
 
     async def _chunk_and_send(self, ctx: commands.Context, text: str) -> None:
         """
-        Divide un mensaje largo en trozos más pequeños y los envía secuencialmente.
+        Divide un mensaje largo en trozos más pequeños y los envía como embeds con colores alternados.
         
         Args:
             ctx: Contexto del comando
             text: Texto a dividir y enviar
         """
-        # Discord tiene un límite de 2000 caracteres por mensaje
-        max_length = 1990  # Dejamos un pequeño margen por si acaso
+        # Dividir el mensaje en trozos para los embeds (Discord limita a 4096 caracteres por embed)
+        chunks = [text[i:i + 4096] for i in range(0, len(text), 4096)]
         
-        # Si el mensaje es corto, lo enviamos directamente
-        if len(text) <= max_length:
-            await ctx.send(text)
-            return
-        
-        # Dividir el mensaje en trozos de aproximadamente max_length
-        chunks = []
-        for i in range(0, len(text), max_length):
-            chunk = text[i:i + max_length]
-            chunks.append(chunk)
-        
-        # Enviar cada trozo como un mensaje separado
+        # Enviar cada trozo como un embed separado, rotando colores
         for i, chunk in enumerate(chunks):
-            # Añadir indicador de continuación si no es el último trozo
-            if i < len(chunks) - 1:
-                chunk += " [...]"
-            await ctx.send(chunk)
+            # Obtener el color actual para la rotación
+            current_color = BASE_EMBED_COLORS[self.embed_color_index % len(BASE_EMBED_COLORS)]
+            # Incrementar el índice para el siguiente embed
+            self.embed_color_index += 1
+            
+            embed = discord.Embed(
+                description=chunk,
+                color=current_color,
+                timestamp=datetime.now(timezone.utc)
+            )
+            
+            # Solo en el primer embed mostramos el pie con el autor
+            if i == 0:
+                embed.set_footer(
+                    text=f"Solicitado por {ctx.author.display_name}",
+                    icon_url=ctx.author.avatar.url if ctx.author.avatar else None
+                )
+                
+            await ctx.send(embed=embed)
     
     async def _process_image(self, image_bytes: bytes):
         """
@@ -209,23 +216,47 @@ class ComandoGemini(commands.Cog):
             logger.error(f"Error inesperado al ejecutar {func.__name__} en un hilo separado: {e}", exc_info=True)
             raise
     
-    def _prepare_spanish_prompt(self, prompt: str, is_image: bool = False) -> str:
+    def _prepare_localized_prompt(self, prompt: str, lang_code: str, is_image: bool = False) -> str:
         """
-        Asegura que el prompt solicite una respuesta en español.
+        Asegura que el prompt solicite una respuesta en el idioma especificado.
         
         Args:
             prompt (str): Prompt original del usuario
+            lang_code (str): Código del idioma (ej: 'es', 'en', etc.)
             is_image (bool): Si es True, utiliza un prompt predeterminado para imágenes cuando está vacío
             
         Returns:
-            str: Prompt modificado para asegurar respuesta en español
+            str: Prompt modificado para asegurar respuesta en el idioma solicitado
         """
-        if not prompt or prompt.strip() == "":
-            return "Describe esta imagen en español" if is_image else "Hola, responde en español por favor."
+        # Obtener el nombre del idioma del mapa de idiomas, o español por defecto
+        language_name = LANGUAGE_MAP.get(lang_code.lower(), "español")
         
-        if "español" not in prompt.lower():
-            return f"{prompt} (Responde en español)"
-            
+        # Si no hay prompt, devolver un prompt predeterminado en el idioma solicitado
+        if not prompt or prompt.strip() == "":
+            if is_image:
+                # Para imágenes, solicitar descripción en el idioma correspondiente
+                if lang_code == "es":
+                    return f"Describe esta imagen en español"
+                else:
+                    return f"Describe esta imagen en {language_name}" if lang_code == "es" else f"Describe this image in {language_name}"
+            else:
+                # Para chat de texto, saludar en el idioma correspondiente
+                if lang_code == "es":
+                    return "Hola, responde en español por favor."
+                elif lang_code == "en":
+                    return "Hello, please respond in English."
+                else:
+                    return f"Hello, please respond in {language_name}."
+                    
+        # Si ya hay un prompt, añadir instrucción sobre el idioma si no está presente ya
+        if language_name.lower() not in prompt.lower():
+            if lang_code == "es":
+                return f"{prompt} (Responde en español)"
+            elif lang_code == "en":
+                return f"{prompt} (Respond in English)"
+            else:
+                return f"{prompt} (Respond in {language_name})"
+                
         return prompt
 
     @commands.command(name='gemini')
@@ -233,12 +264,30 @@ class ComandoGemini(commands.Cog):
         """
         Comando principal para interactuar con Gemini AI.
         Puede procesar texto y, opcionalmente, imágenes adjuntas.
-        Uso: >gemini <tu pregunta> (adjunta una imagen si quieres análisis visual)
+        Uso: >gemini [--lang <código>] <tu pregunta> (adjunta una imagen si quieres análisis visual)
+        Ejemplo: >gemini --lang en How's the weather?
         
         Args:
             ctx (commands.Context): Contexto del comando
-            prompt (str): Prompt del usuario
+            prompt (str): Prompt del usuario, puede incluir --lang <código> para especificar idioma
         """
+        # Extraer el parámetro de idioma si está presente
+        lang_code = "es"  # Idioma por defecto: español
+        
+        # Buscar el parámetro --lang en el prompt
+        if prompt and "--lang" in prompt.lower():
+            parts = prompt.split()
+            for i, part in enumerate(parts):
+                if part.lower() == "--lang" and i + 1 < len(parts):
+                    potential_lang = parts[i + 1].lower()
+                    if potential_lang in LANGUAGE_MAP:
+                        lang_code = potential_lang
+                        # Eliminar --lang y el código de idioma del prompt
+                        parts.pop(i)  # Eliminar --lang
+                        parts.pop(i)  # Eliminar el código de idioma
+                        prompt = " ".join(parts)
+                        break
+        
         # Enviamos un mensaje de "pensando" con un embed profesional
         thinking_embed = discord.Embed(
             title="🧠 Procesando consulta...",
@@ -265,19 +314,19 @@ class ComandoGemini(commands.Cog):
         try:
             if attached_image:
                 # Si hay una imagen, enviamos el prompt y la imagen al modelo multimodal
-                # Aseguramos que responda en español
-                prompt_es = self._prepare_spanish_prompt(prompt, is_image=True)
+                # Aseguramos que responda en el idioma solicitado
+                localized_prompt = self._prepare_localized_prompt(prompt, lang_code, is_image=True)
                 
                 try:
                     # Ejecutar la solicitud en un hilo separado con timeout
                     response = await self._run_in_thread(
                         self.multimodal_model.generate_content, 
-                        [prompt_es, attached_image]
+                        [localized_prompt, attached_image]
                     )
                     
                     # Guardar el mensaje del usuario en la BD (solo el prompt, no podemos guardar la imagen)
                     db_session = get_or_create_gemini_session(ctx.author.id)
-                    add_message_to_session(db_session.id, "user", prompt_es)
+                    add_message_to_session(db_session.id, "user", localized_prompt)
                     
                     # Guardar la respuesta del modelo
                     response_text = response.text
@@ -289,21 +338,21 @@ class ComandoGemini(commands.Cog):
                     return
             else:
                 # Si no hay imagen, usamos el chat de texto
-                chat_session = self._get_user_chat(ctx.author.id)
+                chat_session = await self._get_user_chat_session(ctx.author.id)
                 
-                # Para texto también nos aseguramos que sea en español
-                prompt_es = self._prepare_spanish_prompt(prompt)
+                # Preparamos el prompt con el idioma solicitado
+                localized_prompt = self._prepare_localized_prompt(prompt, lang_code)
                 
                 try:
                     # Ejecutar la solicitud en un hilo separado con timeout
                     response = await self._run_in_thread(
                         chat_session.send_message,
-                        prompt_es
+                        localized_prompt
                     )
                     
                     # Guardar mensajes en la BD
                     db_session = get_or_create_gemini_session(ctx.author.id)
-                    add_message_to_session(db_session.id, "user", prompt_es)
+                    add_message_to_session(db_session.id, "user", localized_prompt)
                     add_message_to_session(db_session.id, "model", response.text)
                     
                 except asyncio.TimeoutError:
@@ -314,7 +363,7 @@ class ComandoGemini(commands.Cog):
             # Eliminar el mensaje de "pensando"
             await thinking_message.delete()
             
-            # Enviar la respuesta, dividiendo en trozos si es necesario
+            # Enviar la respuesta usando el nuevo método de embeds coloridos
             await self._chunk_and_send(ctx, response.text)
             
         except ValueError as e:
@@ -358,6 +407,63 @@ class ComandoGemini(commands.Cog):
             del self.chat_cache[ctx.author.id]
             
         await ctx.send("He olvidado nuestra conversación anterior. ¡Empecemos de nuevo!")
+
+    @commands.command(name='gemini_help')
+    async def gemini_help_command(self, ctx: commands.Context):
+        """
+        Muestra ayuda sobre el uso del comando gemini y sus opciones.
+        Uso: >gemini_help
+        
+        Args:
+            ctx (commands.Context): Contexto del comando
+        """
+        # Crear un embed colorido con la información de ayuda
+        help_embed = discord.Embed(
+            title="🤖 Ayuda de Gemini AI",
+            description="Gemini es un modelo de IA avanzado que puede responder preguntas, analizar imágenes y mantener conversaciones.",
+            color=BASE_EMBED_COLORS[0]
+        )
+        
+        # Comandos disponibles
+        help_embed.add_field(
+            name="📝 Comandos disponibles",
+            value=(
+                "**>gemini** [--lang código] *pregunta*\n"
+                "Realiza una consulta a Gemini. Puedes adjuntar una imagen.\n\n"
+                "**>gemini_reset**\n"
+                "Reinicia tu conversación con Gemini.\n\n"
+                "**>gemini_help**\n"
+                "Muestra esta ayuda."
+            ),
+            inline=False
+        )
+        
+        # Opciones de idioma
+        languages = ", ".join([f"`{code}`" for code in LANGUAGE_MAP.keys()])
+        help_embed.add_field(
+            name="🌐 Idiomas soportados",
+            value=(
+                f"Puedes especificar el idioma de respuesta con `--lang código`.\n"
+                f"Códigos disponibles: {languages}\n"
+                f"Ejemplo: `>gemini --lang en What's the weather like?`"
+            ),
+            inline=False
+        )
+        
+        # Consejos de uso
+        help_embed.add_field(
+            name="💡 Consejos",
+            value=(
+                "• Para análisis de imágenes, adjunta una imagen a tu mensaje.\n"
+                "• Sé específico en tus preguntas para obtener mejores respuestas.\n"
+                "• Si no especificas un idioma, Gemini responderá en español por defecto."
+            ),
+            inline=False
+        )
+        
+        help_embed.set_footer(text="Gemini AI - Powered by Google")
+        
+        await ctx.send(embed=help_embed)
 
 async def setup(bot: commands.Bot):
     """
