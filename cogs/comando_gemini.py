@@ -7,18 +7,24 @@ from typing import List, Optional
 from datetime import datetime, timezone
 import io
 from PIL import Image
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
 import discord
 import google.generativeai as genai
 from discord.ext import commands
 from config.ia_config import (
     text_generation_config,
-    image_generation_config,
     safety_settings,
-    MAX_MESSAGE_LENGTH,
-    MAX_HISTORY_LENGTH,
     EMBED_COLORS,
     SUPPORTED_MIME_TYPES
+)
+from base.database import (
+    get_or_create_gemini_session,
+    add_message_to_session,
+    get_session_messages,
+    reset_gemini_session,
+    prune_old_sessions
 )
 
 # Configuración del logging solo para errores
@@ -27,6 +33,9 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Tiempo máximo de espera para respuestas de Gemini (en segundos)
+GEMINI_TIMEOUT = 20.0
 
 class ComandoGemini(commands.Cog):
     """Cog para manejar comandos relacionados con Gemini AI."""
@@ -39,21 +48,43 @@ class ComandoGemini(commands.Cog):
             bot (commands.Bot): Instancia del bot de Discord
         """
         self.bot = bot
+        # Aquí se usa el modelo "gemini-2.0-flash" para el procesamiento de texto
         self.text_model = genai.GenerativeModel(
-            model_name="gemini-2.0-flash",
+            model_name="gemini-2.0-flash", 
             generation_config=text_generation_config,
             safety_settings=safety_settings
         )
-        self.image_model = genai.GenerativeModel(
-            model_name="gemini-1.5-pro",  # Actualizado al nuevo modelo
-            generation_config=image_generation_config,
+        # Aquí se usa el mismo modelo "gemini-2.0-flash" para la comprensión de imágenes
+        # ya que es multimodal.
+        self.multimodal_model = genai.GenerativeModel(
+            model_name="gemini-2.0-flash", 
+            generation_config=text_generation_config,
             safety_settings=safety_settings
         )
-        self.chats = {}
+        # Se mantiene un diccionario en memoria como caché temporal para evitar excesivas consultas a BD
+        self.chat_cache = {}
+        # Crear pool de hilos para operaciones bloqueantes
+        self.thread_pool = ThreadPoolExecutor(max_workers=5)
+        # Limpiar sesiones inactivas (opcional)
+        try:
+            prune_old_sessions(days_inactive=30)
+            logger.info("Se han limpiado sesiones inactivas de más de 30 días")
+        except Exception as e:
+            logger.error(f"Error al limpiar sesiones antiguas: {e}", exc_info=True)
+    
+    async def cog_unload(self):
+        """
+        Se llama cuando el cog es descargado.
+        Cierra correctamente el ThreadPoolExecutor para liberar recursos.
+        """
+        if self.thread_pool:
+            self.thread_pool.shutdown(wait=True)
+            logger.info("ThreadPoolExecutor cerrado correctamente al descargar ComandoGemini.")
 
     def _get_user_chat(self, user_id: int) -> genai.ChatSession:
         """
         Obtiene o crea una sesión de chat para un usuario específico.
+        Ahora utiliza la base de datos para persistencia.
         
         Args:
             user_id (int): ID del usuario de Discord
@@ -61,209 +92,281 @@ class ComandoGemini(commands.Cog):
         Returns:
             genai.ChatSession: Sesión de chat del usuario
         """
-        if user_id not in self.chats:
-            self.chats[user_id] = self.text_model.start_chat(history=[])
-        return self.chats[user_id]
+        # Si ya está en caché, la devolvemos directamente
+        if user_id in self.chat_cache:
+            return self.chat_cache[user_id]
+            
+        # Obtenemos o creamos la sesión en la base de datos
+        db_session = get_or_create_gemini_session(user_id)
+        
+        # Recuperamos los mensajes históricos de la BD
+        db_messages = get_session_messages(db_session.id, limit=20)
+        
+        # Convertimos los mensajes de la BD al formato que espera Gemini API
+        history = []
+        for msg in db_messages:
+            history.append({
+                "role": msg.role,
+                "parts": [msg.content]
+            })
+        
+        # Iniciamos una nueva sesión con el historial recuperado
+        chat_session = self.text_model.start_chat(history=history)
+        
+        # Guardamos en caché para futuras consultas
+        self.chat_cache[user_id] = chat_session
+        
+        return chat_session
 
     async def _chunk_and_send(self, ctx: commands.Context, text: str) -> None:
         """
-        Divide y envía mensajes largos en partes usando embeds.
+        Divide un mensaje largo en trozos más pequeños y los envía secuencialmente.
         
         Args:
-            ctx (commands.Context): Contexto del comando
-            text (str): Texto a enviar
+            ctx: Contexto del comando
+            text: Texto a dividir y enviar
         """
-        embed = discord.Embed(
-            color=EMBED_COLORS["default"],
-            timestamp=datetime.now(timezone.utc)
-        )
-        embed.set_footer(text=f"Solicitado por {ctx.author.display_name}", 
-                        icon_url=ctx.author.avatar.url if ctx.author.avatar else None)
-
-        chunks = [text[i:i + 4096] for i in range(0, len(text), 4096)]
-        embed.description = chunks[0]
-        await ctx.send(embed=embed)
-
-        for chunk in chunks[1:]:
-            new_embed = discord.Embed(
-                description=chunk,
-                color=EMBED_COLORS["default"],
-                timestamp=datetime.now(timezone.utc)
-            )
-            await ctx.send(embed=new_embed)
-
-    async def _process_image(self, image_data: bytes) -> Image.Image:
+        # Discord tiene un límite de 2000 caracteres por mensaje
+        max_length = 1990  # Dejamos un pequeño margen por si acaso
+        
+        # Si el mensaje es corto, lo enviamos directamente
+        if len(text) <= max_length:
+            await ctx.send(text)
+            return
+        
+        # Dividir el mensaje en trozos de aproximadamente max_length
+        chunks = []
+        for i in range(0, len(text), max_length):
+            chunk = text[i:i + max_length]
+            chunks.append(chunk)
+        
+        # Enviar cada trozo como un mensaje separado
+        for i, chunk in enumerate(chunks):
+            # Añadir indicador de continuación si no es el último trozo
+            if i < len(chunks) - 1:
+                chunk += " [...]"
+            await ctx.send(chunk)
+    
+    async def _process_image(self, image_bytes: bytes) -> genai.types.Image:
         """
-        Procesa los bytes de la imagen y la convierte a formato PIL.
+        Procesa una imagen para enviarla a Gemini.
+        Redimensiona la imagen si supera los límites de tamaño.
         
         Args:
-            image_data (bytes): Bytes de la imagen
+            image_bytes: Bytes de la imagen a procesar
             
         Returns:
-            Image.Image: Imagen procesada
+            Image: Objeto de imagen de Gemini
         """
-        image = Image.open(io.BytesIO(image_data))
+        # Abrir la imagen con PIL
+        image = Image.open(io.BytesIO(image_bytes))
         
-        # Convertir a RGB si es necesario
-        if image.mode not in ("RGB", "RGBA"):
-            image = image.convert("RGB")
+        # Comprobar si necesitamos redimensionar la imagen
+        # El modelo Gemini tiene un límite de 1024x1024 píxeles
+        max_size = 1024
+        if image.width > max_size or image.height > max_size:
+            # Calcular la proporción para mantener el aspect ratio
+            ratio = min(max_size / image.width, max_size / image.height)
+            new_size = (int(image.width * ratio), int(image.height * ratio))
             
-        # Redimensionar si es necesario según los límites de Gemini
-        width, height = image.size
-        if width > 768 or height > 768:
-            image.thumbnail((768, 768), Image.Resampling.LANCZOS)
+            # Redimensionar la imagen
+            image = image.resize(new_size, Image.LANCZOS)
             
-        return image
+            # Convertir de nuevo a bytes
+            buffer = io.BytesIO()
+            image.save(buffer, format="PNG")
+            image_bytes = buffer.getvalue()
+        
+        # Convertir a formato de imagen de Gemini
+        return genai.types.Image.from_bytes(image_bytes)
+
+    async def _run_in_thread(self, func, *args):
+        """
+        Ejecuta una función en un hilo separado y con timeout.
+        
+        Args:
+            func: La función a ejecutar
+            args: Argumentos para la función
+            
+        Returns:
+            El resultado de la función
+            
+        Raises:
+            asyncio.TimeoutError: Si la función tarda más del timeout definido
+        """
+        # Usamos loop.run_in_executor para ejecutar la función en un hilo separado
+        loop = asyncio.get_event_loop()
+        try:
+            return await asyncio.wait_for(
+                loop.run_in_executor(self.thread_pool, func, *args),
+                timeout=GEMINI_TIMEOUT
+            )
+        except asyncio.TimeoutError:
+            logger.warning(f"Timeout al ejecutar función {func.__name__}")
+            raise
+        except Exception as e:
+            logger.error(f"Error inesperado al ejecutar {func.__name__} en un hilo separado: {e}", exc_info=True)
+            raise
+    
+    def _prepare_spanish_prompt(self, prompt: str, is_image: bool = False) -> str:
+        """
+        Asegura que el prompt solicite una respuesta en español.
+        
+        Args:
+            prompt (str): Prompt original del usuario
+            is_image (bool): Si es True, utiliza un prompt predeterminado para imágenes cuando está vacío
+            
+        Returns:
+            str: Prompt modificado para asegurar respuesta en español
+        """
+        if not prompt or prompt.strip() == "":
+            return "Describe esta imagen en español" if is_image else "Hola, responde en español por favor."
+        
+        if "español" not in prompt.lower():
+            return f"{prompt} (Responde en español)"
+            
+        return prompt
 
     @commands.command(name='gemini')
-    async def gemini_command(self, ctx: commands.Context, *, prompt: str):
+    async def gemini_command(self, ctx: commands.Context, *, prompt: str = ""):
         """
         Comando principal para interactuar con Gemini AI.
-        Uso: >gemini <tu pregunta>
+        Puede procesar texto y, opcionalmente, imágenes adjuntas.
+        Uso: >gemini <tu pregunta> (adjunta una imagen si quieres análisis visual)
         
         Args:
             ctx (commands.Context): Contexto del comando
             prompt (str): Prompt del usuario
         """
+        # Enviamos un mensaje de "pensando" con un embed profesional
+        thinking_embed = discord.Embed(
+            title="🧠 Procesando consulta...",
+            description="**Pythonbot** está pensando tu respuesta. Por favor espera un momento.",
+            color=EMBED_COLORS["default"]
+        )
+        thinking_message = await ctx.send(embed=thinking_embed)
+
+        attached_image = None
+        if ctx.message.attachments:
+            for attachment in ctx.message.attachments:
+                # Comprobar si el adjunto es una imagen
+                if attachment.content_type and any(mime_type in attachment.content_type for mime_type in SUPPORTED_MIME_TYPES):
+                    try:
+                        image_bytes = await attachment.read()
+                        attached_image = await self._process_image(image_bytes)
+                        break # Solo procesamos la primera imagen adjunta
+                    except Exception as e:
+                        logger.error(f"Error al procesar la imagen adjunta: {e}")
+                        await thinking_message.delete()
+                        await ctx.send("Hubo un error al procesar la imagen. Por favor, intenta de nuevo.")
+                        return
+
         try:
-            async with ctx.typing():
-                chat = self._get_user_chat(ctx.author.id)
-                response = chat.send_message(prompt)
-                await self._chunk_and_send(ctx, response.text)
+            if attached_image:
+                # Si hay una imagen, enviamos el prompt y la imagen al modelo multimodal
+                # Aseguramos que responda en español
+                prompt_es = self._prepare_spanish_prompt(prompt, is_image=True)
                 
+                contents = [prompt_es]
+                if attached_image:
+                    contents.append(attached_image)
+                
+                try:
+                    # Ejecutar la solicitud en un hilo separado con timeout
+                    response = await self._run_in_thread(
+                        self.multimodal_model.generate_content, 
+                        contents
+                    )
+                    
+                    # Guardar el mensaje del usuario en la BD (solo el prompt, no podemos guardar la imagen)
+                    db_session = get_or_create_gemini_session(ctx.author.id)
+                    add_message_to_session(db_session.id, "user", prompt_es)
+                    
+                    # Guardar la respuesta del modelo
+                    response_text = response.text
+                    add_message_to_session(db_session.id, "model", response_text)
+                    
+                except asyncio.TimeoutError:
+                    await thinking_message.delete()
+                    await ctx.send("La respuesta está tardando demasiado. Por favor, intenta con una consulta más simple o inténtalo más tarde.")
+                    return
+            else:
+                # Si no hay imagen, usamos el chat de texto
+                chat_session = self._get_user_chat(ctx.author.id)
+                
+                # Para texto también nos aseguramos que sea en español
+                prompt_es = self._prepare_spanish_prompt(prompt)
+                
+                try:
+                    # Ejecutar la solicitud en un hilo separado con timeout
+                    response = await self._run_in_thread(
+                        chat_session.send_message,
+                        prompt_es
+                    )
+                    
+                    # Guardar mensajes en la BD
+                    db_session = get_or_create_gemini_session(ctx.author.id)
+                    add_message_to_session(db_session.id, "user", prompt_es)
+                    add_message_to_session(db_session.id, "model", response.text)
+                    
+                except asyncio.TimeoutError:
+                    await thinking_message.delete()
+                    await ctx.send("La respuesta está tardando demasiado. Por favor, intenta con una consulta más simple o inténtalo más tarde.")
+                    return
+
+            # Eliminar el mensaje de "pensando"
+            await thinking_message.delete()
+            
+            # Enviar la respuesta, dividiendo en trozos si es necesario
+            await self._chunk_and_send(ctx, response.text)
+            
+        except ValueError as e:
+            # Manejar errores específicos de la API
+            await thinking_message.delete()
+            error_message = str(e).lower()
+            
+            if "blocked" in error_message:
+                await ctx.send(
+                    "Tu consulta ha sido bloqueada debido a restricciones de contenido. " +
+                    "Por favor, reformula tu pregunta de manera más apropiada."
+                )
+            else:
+                await ctx.send(
+                    f"Ha ocurrido un error al procesar tu consulta: {str(e)[:100]}... " +
+                    "Por favor, intenta reformular tu pregunta."
+                )
         except Exception as e:
-            logger.error(f"Error al procesar prompt: {str(e)}")
-            embed = discord.Embed(
-                title="❌ Error",
-                description=f"Lo siento, ocurrió un error al procesar tu solicitud: {str(e)}",
-                color=EMBED_COLORS["error"]
+            # Manejar cualquier otro error
+            logger.error(f"Error al procesar la solicitud de Gemini: {e}", exc_info=True)
+            await thinking_message.delete()
+            await ctx.send(
+                "Ha ocurrido un error inesperado al procesar tu consulta. " +
+                f"Por favor, intenta de nuevo más tarde. (Error: {str(e)[:100]})"
             )
-            await ctx.send(embed=embed)
 
     @commands.command(name='gemini_reset')
-    async def gemini_reset(self, ctx: commands.Context):
+    async def reset_gemini_command(self, ctx: commands.Context):
         """
-        Reinicia el historial de chat del usuario.
+        Reinicia la sesión de chat con Gemini AI para el usuario.
         Uso: >gemini_reset
-        """
-        try:
-            user_id = ctx.author.id
-            if user_id in self.chats:
-                del self.chats[user_id]
-                embed = discord.Embed(
-                    title="✅ Chat Reiniciado",
-                    description="Tu historial de chat ha sido reiniciado.",
-                    color=EMBED_COLORS["success"]
-                )
-                await ctx.send(embed=embed)
-            else:
-                embed = discord.Embed(
-                    description="No hay historial de chat para reiniciar.",
-                    color=EMBED_COLORS["warning"]
-                )
-                await ctx.send(embed=embed)
-        except Exception as e:
-            logger.error(f"Error al reiniciar chat: {str(e)}")
-            embed = discord.Embed(
-                title="❌ Error",
-                description="Error al reiniciar el chat.",
-                color=EMBED_COLORS["error"]
-            )
-            await ctx.send(embed=embed)
-
-    @commands.command(name='gemini_imagen')
-    async def gemini_imagen(self, ctx: commands.Context, *, prompt: str = None):
-        """
-        Procesa una imagen adjunta con Gemini Vision.
-        Uso: 
-        1. Adjunta una imagen
-        2. Responde a la imagen con >gemini_imagen [descripción opcional]
         
         Args:
             ctx (commands.Context): Contexto del comando
-            prompt (str): Prompt opcional para la imagen
         """
-        try:
-            # Verificar si es una respuesta a un mensaje
-            reference = ctx.message.reference
-            if reference and reference.resolved:
-                # Obtener el mensaje al que se está respondiendo
-                original_message = reference.resolved
-                if original_message.attachments:
-                    attachment = original_message.attachments[0]
-                else:
-                    embed = discord.Embed(
-                        title="❌ Error",
-                        description="El mensaje al que respondes debe contener una imagen.",
-                        color=EMBED_COLORS["error"]
-                    )
-                    await ctx.send(embed=embed)
-                    return
-            else:
-                # Verificar si el mensaje actual tiene una imagen adjunta
-                if ctx.message.attachments:
-                    attachment = ctx.message.attachments[0]
-                else:
-                    embed = discord.Embed(
-                        title="❌ Error",
-                        description="Para usar este comando:\n1. Adjunta una imagen\n2. Responde a la imagen con >gemini_imagen [descripción opcional]",
-                        color=EMBED_COLORS["error"]
-                    )
-                    await ctx.send(embed=embed)
-                    return
+        # Reiniciamos la sesión en BD
+        reset_gemini_session(ctx.author.id)
+        
+        # Eliminamos la caché
+        if ctx.author.id in self.chat_cache:
+            del self.chat_cache[ctx.author.id]
             
-            # Establecer prompt predeterminado si no se proporciona
-            if prompt is None:
-                prompt = "Describe esta imagen"
-
-            # Verificar tipo MIME
-            if not attachment.content_type.startswith('image/'):
-                embed = discord.Embed(
-                    title="❌ Error",
-                    description="El archivo adjunto debe ser una imagen.",
-                    color=EMBED_COLORS["error"]
-                )
-                await ctx.send(embed=embed)
-                return
-
-            if attachment.content_type not in SUPPORTED_MIME_TYPES:
-                supported_formats = ", ".join(t.split('/')[-1].upper() for t in SUPPORTED_MIME_TYPES)
-                embed = discord.Embed(
-                    title="❌ Error",
-                    description=f"Formato de imagen no soportado. Por favor usa: {supported_formats}",
-                    color=EMBED_COLORS["error"]
-                )
-                await ctx.send(embed=embed)
-                return
-
-            async with ctx.typing():
-                # Leer y procesar la imagen
-                image_data = await attachment.read()
-                processed_image = await self._process_image(image_data)
-                
-                # Generar contenido con la imagen procesada
-                response = self.image_model.generate_content(
-                    contents=[prompt, processed_image],
-                    stream=True
-                )
-                response.resolve()
-                
-                await self._chunk_and_send(ctx, response.text)
-
-        except Exception as e:
-            logger.error(f"Error al procesar imagen: {str(e)}", exc_info=True)
-            embed = discord.Embed(
-                title="❌ Error",
-                description=f"Error al procesar la imagen: {str(e)}",
-                color=EMBED_COLORS["error"]
-            )
-            await ctx.send(embed=embed)
+        await ctx.send("He olvidado nuestra conversación anterior. ¡Empecemos de nuevo!")
 
 async def setup(bot: commands.Bot):
     """
-    Función de configuración del Cog.
+    Configura el cog de Gemini en el bot.
     
     Args:
-        bot (commands.Bot): Instancia del bot de Discord
+        bot (commands.Bot): Instancia del bot
     """
     await bot.add_cog(ComandoGemini(bot))

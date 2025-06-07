@@ -30,9 +30,8 @@ def ayuda(categoria: str = None) -> str:
             "> **>llama_stats**\n> _Muestra tus estadísticas personales de uso de Llama._\n\n"
             "> **>llama_stats True**\n> _Muestra las estadísticas globales del día para la IA Llama._\n\n"
             "> **>llama_dashboard**\n> _Visualiza un resumen visual (tabla) de las métricas globales de la IA Llama._\n\n"
-            "> **>gemini [pregunta]**\n> _Habla con la IA Gemini sobre cualquier tema._\n> Ejemplo: `>gemini ¿Qué es la computación cuántica?`\n\n"
-            "> **>gemini_imagen [descripción opcional]**\n> _Sube una imagen y Gemini te dirá qué ve en ella._\n> Ejemplo: adjunta una imagen y escribe `>gemini_imagen ¿Qué hay en esta foto?`\n> También puedes responder a un mensaje con imagen usando `>gemini_imagen`\n\n"
-            "> **>gemini_reset**\n> _Reinicia tu historial de conversación con Gemini._\n"
+            "> **>gemini [pregunta]**\n> _Habla con la IA Gemini sobre cualquier tema o analiza imágenes._\n> _Ahora con memoria persistente que mantiene tu historial de chat incluso cuando el bot se reinicia._\n> Ejemplos:\n> `>gemini ¿Qué es la computación cuántica?`\n> `>gemini` (adjuntando una imagen)\n> `>gemini Describe esta foto en detalle` (adjuntando una imagen)\n\n"
+            "> **>gemini_reset**\n> _Reinicia tu historial de conversación con Gemini para empezar desde cero._\n"
         )
     elif categoria == "juegos":
         return (
@@ -70,10 +69,11 @@ def ayuda(categoria: str = None) -> str:
         )
     elif categoria in ("novedades", "tips"):
         return (
-            "**🆕 NOVEDADES IA Llama**\n"
+            "**🆕 NOVEDADES IA**\n"
+            "- **Persistencia en Gemini:** Ahora tu historial de chat se guarda incluso si el bot se reinicia.\n"
+            "- **>gemini_reset:** Comando para reiniciar tu historial de conversación.\n"
             "- Consulta tus estadísticas personales y globales con `>llama_stats` y `>llama_stats True`.\n"
-            "- Visualiza un dashboard simple con `>llama_dashboard`.\n"
-            "- El bot ahora registra cuántas veces usas Llama, tokens consumidos, errores y más.\n\n"
+            "- Visualiza un dashboard simple con `>llama_dashboard`.\n\n"
             "**ℹ️ CONSEJOS ÚTILES**\n"
             "- ¡Puedes escribir los comandos en minúsculas o mayúsculas!\n"
             "- Usa `@usuario` para mencionar a alguien en comandos sociales.\n"
@@ -85,4 +85,3 @@ def ayuda(categoria: str = None) -> str:
             "Categoría no reconocida. Categorías válidas: ia, juegos, utilidades, moderacion, otros, novedades.\n"
             "Ejemplo: `>ayuda juegos`"
         )
-
