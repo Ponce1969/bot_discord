@@ -463,7 +463,10 @@ class ComandoGemini(commands.Cog):
         
         help_embed.set_footer(text="Gemini AI - Powered by Google")
         
-        await ctx.send(embed=help_embed)
+        # Enviar el mensaje y configurarlo para que se borre después de 60 segundos
+        await ctx.message.delete(delay=60)  # Borra el mensaje del usuario después de 60 segundos
+        help_message = await ctx.send(embed=help_embed)
+        await help_message.delete(delay=60)  # Borra la respuesta después de 60 segundos
 
 async def setup(bot: commands.Bot):
     """
