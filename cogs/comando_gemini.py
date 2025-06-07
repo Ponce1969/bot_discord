@@ -147,7 +147,7 @@ class ComandoGemini(commands.Cog):
                 chunk += " [...]"
             await ctx.send(chunk)
     
-    async def _process_image(self, image_bytes: bytes) -> genai.types.Image:
+    async def _process_image(self, image_bytes: bytes):
         """
         Procesa una imagen para enviarla a Gemini.
         Redimensiona la imagen si supera los límites de tamaño.
@@ -156,7 +156,7 @@ class ComandoGemini(commands.Cog):
             image_bytes: Bytes de la imagen a procesar
             
         Returns:
-            Image: Objeto de imagen de Gemini
+            Image: Objeto de imagen procesado para Gemini
         """
         # Abrir la imagen con PIL
         image = Image.open(io.BytesIO(image_bytes))
@@ -177,8 +177,9 @@ class ComandoGemini(commands.Cog):
             image.save(buffer, format="PNG")
             image_bytes = buffer.getvalue()
         
-        # Convertir a formato de imagen de Gemini
-        return genai.types.Image.from_bytes(image_bytes)
+        # Usar el método directo de genai para crear una imagen desde bytes
+        # Este método es más compatible con diferentes versiones
+        return {"mime_type": "image/png", "data": image_bytes}
 
     async def _run_in_thread(self, func, *args):
         """
@@ -267,15 +268,11 @@ class ComandoGemini(commands.Cog):
                 # Aseguramos que responda en español
                 prompt_es = self._prepare_spanish_prompt(prompt, is_image=True)
                 
-                contents = [prompt_es]
-                if attached_image:
-                    contents.append(attached_image)
-                
                 try:
                     # Ejecutar la solicitud en un hilo separado con timeout
                     response = await self._run_in_thread(
                         self.multimodal_model.generate_content, 
-                        contents
+                        [prompt_es, attached_image]
                     )
                     
                     # Guardar el mensaje del usuario en la BD (solo el prompt, no podemos guardar la imagen)
