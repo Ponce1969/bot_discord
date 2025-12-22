@@ -32,9 +32,9 @@ def direct_keyword_answer(user_input: str, keywords: dict):
     La estructura de keywords debe ser:
     {
         'ia': {
-            'aliases': ['inteligencia artificial', 'asistente', 'gemini', 'llama'],
+            'aliases': ['inteligencia artificial', 'asistente', 'deepseek', 'llama'],
             'faq': ["¿Qué IA tenemos?", ...],
-            'custom_response': "¡Sí! Tenemos asistentes IA como Gemini y Llama. Pregunta por '>ayuda ia' para más info."
+            'custom_response': "¡Sí! Tenemos asistentes IA como DeepSeek y Llama. Pregunta por '>ayuda ia' para más info."
         },
         ...
     }

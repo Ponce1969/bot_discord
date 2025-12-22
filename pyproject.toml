@@ -37,6 +37,7 @@ python-levenshtein = "^0.26.0"
 dask = {extras = ["dataframe"], version = "^2024.9.0"}
 pandas = "^2.2.3"
 Pillow = "^10.4.0"
+openai = "^1.0.0"
 
 [build-system]
 requires = ["poetry-core"]

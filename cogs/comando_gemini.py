@@ -1,6 +1,6 @@
 """
-Módulo para la integración de Gemini AI con Discord.
-Proporciona comandos para interactuar con los modelos de IA de Gemini.
+Módulo para la integración de DeepSeek AI con Discord.
+Proporciona comandos para interactuar con los modelos de IA de DeepSeek.
 """
 import logging
 from typing import List, Optional
@@ -11,16 +11,15 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
 import discord
-import google.generativeai as genai
 from discord.ext import commands
+from openai import OpenAI
+import os
 from config.ia_config import (
-    text_generation_config,
-    safety_settings,
     EMBED_COLORS,
     SUPPORTED_MIME_TYPES,
     BASE_EMBED_COLORS,
     LANGUAGE_MAP,
-    GEMINI_TIMEOUT,
+    DEEPSEEK_TIMEOUT,
     MAX_HISTORY_LENGTH
 )
 from base.database import (
@@ -39,29 +38,27 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class ComandoGemini(commands.Cog):
-    """Cog para manejar comandos relacionados con Gemini AI."""
+    """Cog para manejar comandos relacionados con DeepSeek AI."""
 
     def __init__(self, bot: commands.Bot):
         """
-        Inicializa el Cog de Gemini.
+        Inicializa el Cog de DeepSeek.
         
         Args:
             bot (commands.Bot): Instancia del bot de Discord
         """
         self.bot = bot
-        # Aquí se usa el modelo "gemini-2.0-flash" para el procesamiento de texto
-        self.text_model = genai.GenerativeModel(
-            model_name="gemini-2.0-flash", 
-            generation_config=text_generation_config,
-            safety_settings=safety_settings
+        # Inicializar cliente DeepSeek (usa API compatible con OpenAI)
+        deepseek_api_key = os.getenv('DEEPSEEK_API_KEY')
+        if not deepseek_api_key:
+            logger.error("DEEPSEEK_API_KEY no está configurada en las variables de entorno")
+            raise ValueError("DEEPSEEK_API_KEY es requerida")
+        
+        self.client = OpenAI(
+            api_key=deepseek_api_key,
+            base_url="https://api.deepseek.com"
         )
-        # Aquí se usa el mismo modelo "gemini-2.0-flash" para la comprensión de imágenes
-        # ya que es multimodal.
-        self.multimodal_model = genai.GenerativeModel(
-            model_name="gemini-2.0-flash", 
-            generation_config=text_generation_config,
-            safety_settings=safety_settings
-        )
+        self.model_name = "deepseek-chat"
         # Se mantiene un diccionario en memoria como caché temporal para evitar excesivas consultas a BD
         self.chat_cache = {}
         # Crear pool de hilos para operaciones bloqueantes
@@ -84,7 +81,7 @@ class ComandoGemini(commands.Cog):
             self.thread_pool.shutdown(wait=True)
             logger.info("ThreadPoolExecutor cerrado correctamente al descargar ComandoGemini.")
 
-    async def _get_user_chat_session(self, user_id: int) -> genai.ChatSession:
+    async def _get_user_chat_session(self, user_id: int) -> list:
         """
         Obtiene o crea una sesión de chat para un usuario específico.
         Utiliza la base de datos para persistencia.
@@ -93,7 +90,7 @@ class ComandoGemini(commands.Cog):
             user_id (int): ID del usuario de Discord
             
         Returns:
-            genai.ChatSession: Sesión de chat del usuario
+            list: Historial de mensajes del usuario en formato OpenAI
         """
         # Si ya está en caché, la devolvemos directamente
         if user_id in self.chat_cache:
@@ -105,21 +102,20 @@ class ComandoGemini(commands.Cog):
         # Recuperamos los mensajes históricos de la BD
         db_messages = get_session_messages(db_session.id, limit=MAX_HISTORY_LENGTH)
         
-        # Convertimos los mensajes de la BD al formato que espera Gemini API
+        # Convertimos los mensajes de la BD al formato que espera OpenAI API
         history = []
         for msg in db_messages:
+            # DeepSeek usa 'user' y 'assistant' como roles
+            role = "assistant" if msg.role == "model" else "user"
             history.append({
-                "role": msg.role,
-                "parts": [msg.content]
+                "role": role,
+                "content": msg.content
             })
         
-        # Iniciamos una nueva sesión con el historial recuperado
-        chat_session = self.text_model.start_chat(history=history)
-        
         # Guardamos en caché para futuras consultas
-        self.chat_cache[user_id] = chat_session
+        self.chat_cache[user_id] = history
         
-        return chat_session
+        return history
 
     async def _chunk_and_send(self, ctx: commands.Context, text: str) -> None:
         """
@@ -204,17 +200,27 @@ class ComandoGemini(commands.Cog):
         """
         # Usamos loop.run_in_executor para ejecutar la función en un hilo separado
         loop = asyncio.get_event_loop()
-        try:
-            return await asyncio.wait_for(
-                loop.run_in_executor(self.thread_pool, func, *args),
-                timeout=GEMINI_TIMEOUT
-            )
-        except asyncio.TimeoutError:
-            logger.warning(f"Timeout al ejecutar función {func.__name__}")
-            raise
-        except Exception as e:
-            logger.error(f"Error inesperado al ejecutar {func.__name__} en un hilo separado: {e}", exc_info=True)
-            raise
+        retries = 3
+        for attempt in range(retries):
+            try:
+                return await asyncio.wait_for(
+                    loop.run_in_executor(self.thread_pool, func, *args),
+                    timeout=DEEPSEEK_TIMEOUT
+                )
+            except asyncio.TimeoutError:
+                logger.warning(f"Timeout al ejecutar función {func.__name__} (intento {attempt + 1}/{retries})")
+                if attempt < retries - 1:
+                    await asyncio.sleep(2 ** attempt) # Espera exponencial
+                else:
+                    raise
+            except Exception as e:
+                error_message = str(e)
+                if "429 You exceeded your current quota" in error_message and attempt < retries - 1:
+                    logger.warning(f"Error 429 (Cuota excedida) al ejecutar {func.__name__}. Reintentando en {2 ** attempt} segundos...")
+                    await asyncio.sleep(2 ** attempt) # Espera exponencial
+                else:
+                    logger.error(f"Error inesperado al ejecutar {func.__name__} en un hilo separado: {e}", exc_info=True)
+                    raise
     
     def _prepare_localized_prompt(self, prompt: str, lang_code: str, is_image: bool = False) -> str:
         """
@@ -259,13 +265,13 @@ class ComandoGemini(commands.Cog):
                 
         return prompt
 
-    @commands.command(name='gemini')
-    async def gemini_command(self, ctx: commands.Context, *, prompt: str = ""):
+    @commands.command(name='deepseek')
+    async def deepseek_command(self, ctx: commands.Context, *, prompt: str = ""):
         """
-        Comando principal para interactuar con Gemini AI.
+        Comando principal para interactuar con DeepSeek AI.
         Puede procesar texto y, opcionalmente, imágenes adjuntas.
-        Uso: >gemini [--lang <código>] <tu pregunta> (adjunta una imagen si quieres análisis visual)
-        Ejemplo: >gemini --lang en How's the weather?
+        Uso: >deepseek [--lang <código>] <tu pregunta> (adjunta una imagen si quieres análisis visual)
+        Ejemplo: >deepseek --lang en How's the weather?
         
         Args:
             ctx (commands.Context): Contexto del comando
@@ -290,8 +296,8 @@ class ComandoGemini(commands.Cog):
         
         # Enviamos un mensaje de "pensando" con un embed profesional
         thinking_embed = discord.Embed(
-            title="🧠 Procesando consulta...",
-            description="**Pythonbot** está pensando tu respuesta. Por favor espera un momento.",
+            title="� Procesando consulta...",
+            description="**DeepSeek AI** está pensando tu respuesta. Por favor espera un momento.",
             color=EMBED_COLORS["default"]
         )
         thinking_message = await ctx.send(embed=thinking_embed)
@@ -318,18 +324,43 @@ class ComandoGemini(commands.Cog):
                 localized_prompt = self._prepare_localized_prompt(prompt, lang_code, is_image=True)
                 
                 try:
-                    # Ejecutar la solicitud en un hilo separado con timeout
-                    response = await self._run_in_thread(
-                        self.multimodal_model.generate_content, 
-                        [localized_prompt, attached_image]
-                    )
+                    # DeepSeek soporta visión con deepseek-chat
+                    # Convertir imagen a base64 para enviar
+                    import base64
+                    image_base64 = base64.b64encode(attached_image["data"]).decode('utf-8')
                     
-                    # Guardar el mensaje del usuario en la BD (solo el prompt, no podemos guardar la imagen)
+                    messages = [
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": localized_prompt},
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/png;base64,{image_base64}"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                    
+                    # Ejecutar la solicitud en un hilo separado con timeout
+                    def call_deepseek():
+                        return self.client.chat.completions.create(
+                            model=self.model_name,
+                            messages=messages,
+                            temperature=0.9,
+                            max_tokens=2000
+                        )
+                    
+                    response = await self._run_in_thread(call_deepseek)
+                    
+                    # Guardar el mensaje del usuario en la BD
                     db_session = get_or_create_gemini_session(ctx.author.id)
                     add_message_to_session(db_session.id, "user", localized_prompt)
                     
                     # Guardar la respuesta del modelo
-                    response_text = response.text
+                    response_text = response.choices[0].message.content
                     add_message_to_session(db_session.id, "model", response_text)
                     
                 except asyncio.TimeoutError:
@@ -338,22 +369,34 @@ class ComandoGemini(commands.Cog):
                     return
             else:
                 # Si no hay imagen, usamos el chat de texto
-                chat_session = await self._get_user_chat_session(ctx.author.id)
+                history = await self._get_user_chat_session(ctx.author.id)
                 
                 # Preparamos el prompt con el idioma solicitado
                 localized_prompt = self._prepare_localized_prompt(prompt, lang_code)
                 
                 try:
+                    # Agregar el mensaje del usuario al historial
+                    messages = history + [{"role": "user", "content": localized_prompt}]
+                    
                     # Ejecutar la solicitud en un hilo separado con timeout
-                    response = await self._run_in_thread(
-                        chat_session.send_message,
-                        localized_prompt
-                    )
+                    def call_deepseek():
+                        return self.client.chat.completions.create(
+                            model=self.model_name,
+                            messages=messages,
+                            temperature=0.9,
+                            max_tokens=2000
+                        )
+                    
+                    response = await self._run_in_thread(call_deepseek)
                     
                     # Guardar mensajes en la BD
                     db_session = get_or_create_gemini_session(ctx.author.id)
                     add_message_to_session(db_session.id, "user", localized_prompt)
-                    add_message_to_session(db_session.id, "model", response.text)
+                    response_text = response.choices[0].message.content
+                    add_message_to_session(db_session.id, "model", response_text)
+                    
+                    # Actualizar caché con la nueva respuesta
+                    self.chat_cache[ctx.author.id] = messages + [{"role": "assistant", "content": response_text}]
                     
                 except asyncio.TimeoutError:
                     await thinking_message.delete()
@@ -364,7 +407,7 @@ class ComandoGemini(commands.Cog):
             await thinking_message.delete()
             
             # Enviar la respuesta usando el nuevo método de embeds coloridos
-            await self._chunk_and_send(ctx, response.text)
+            await self._chunk_and_send(ctx, response_text)
             
         except ValueError as e:
             # Manejar errores específicos de la API
@@ -390,11 +433,11 @@ class ComandoGemini(commands.Cog):
                 f"Por favor, intenta de nuevo más tarde. (Error: {str(e)[:100]})"
             )
 
-    @commands.command(name='gemini_reset')
-    async def reset_gemini_command(self, ctx: commands.Context):
+    @commands.command(name='deepseek_reset')
+    async def reset_deepseek_command(self, ctx: commands.Context):
         """
-        Reinicia la sesión de chat con Gemini AI para el usuario.
-        Uso: >gemini_reset
+        Reinicia la sesión de chat con DeepSeek AI para el usuario.
+        Uso: >deepseek_reset
         
         Args:
             ctx (commands.Context): Contexto del comando
@@ -406,21 +449,21 @@ class ComandoGemini(commands.Cog):
         if ctx.author.id in self.chat_cache:
             del self.chat_cache[ctx.author.id]
             
-        await ctx.send("He olvidado nuestra conversación anterior. ¡Empecemos de nuevo!")
+        await ctx.send("✨ He olvidado nuestra conversación anterior. ¡Empecemos de nuevo!")
 
-    @commands.command(name='gemini_help')
-    async def gemini_help_command(self, ctx: commands.Context):
+    @commands.command(name='deepseek_help')
+    async def deepseek_help_command(self, ctx: commands.Context):
         """
-        Muestra ayuda sobre el uso del comando gemini y sus opciones.
-        Uso: >gemini_help
+        Muestra ayuda sobre el uso del comando deepseek y sus opciones.
+        Uso: >deepseek_help
         
         Args:
             ctx (commands.Context): Contexto del comando
         """
         # Crear un embed colorido con la información de ayuda
         help_embed = discord.Embed(
-            title="🤖 Ayuda de Gemini AI",
-            description="Gemini es un modelo de IA avanzado que puede responder preguntas, analizar imágenes y mantener conversaciones.",
+            title="🤖 Ayuda de DeepSeek AI",
+            description="DeepSeek es un modelo de IA avanzado que puede responder preguntas, analizar imágenes y mantener conversaciones en español.",
             color=BASE_EMBED_COLORS[0]
         )
         
@@ -428,11 +471,11 @@ class ComandoGemini(commands.Cog):
         help_embed.add_field(
             name="📝 Comandos disponibles",
             value=(
-                "**>gemini** [--lang código] *pregunta*\n"
-                "Realiza una consulta a Gemini. Puedes adjuntar una imagen.\n\n"
-                "**>gemini_reset**\n"
-                "Reinicia tu conversación con Gemini.\n\n"
-                "**>gemini_help**\n"
+"**>deepseek** [--lang código] *pregunta*\n"
+                "Realiza una consulta a DeepSeek AI. Puedes adjuntar una imagen.\n\n"
+                "**>deepseek_reset**\n"
+                "Reinicia tu conversación con DeepSeek.\n\n"
+                "**>deepseek_help**\n"
                 "Muestra esta ayuda."
             ),
             inline=False
@@ -443,9 +486,10 @@ class ComandoGemini(commands.Cog):
         help_embed.add_field(
             name="🌐 Idiomas soportados",
             value=(
-                f"Puedes especificar el idioma de respuesta con `--lang código`.\n"
+f"Puedes especificar el idioma de respuesta con `--lang código`.\n"
                 f"Códigos disponibles: {languages}\n"
-                f"Ejemplo: `>gemini --lang en What's the weather like?`"
+                f"Ejemplo: `>deepseek --lang en What's the weather like?`\n"
+                f"Por defecto, DeepSeek responde en español."
             ),
             inline=False
         )
@@ -456,12 +500,13 @@ class ComandoGemini(commands.Cog):
             value=(
                 "• Para análisis de imágenes, adjunta una imagen a tu mensaje.\n"
                 "• Sé específico en tus preguntas para obtener mejores respuestas.\n"
-                "• Si no especificas un idioma, Gemini responderá en español por defecto."
+                "• DeepSeek es económico y sin límites de cuota.\n"
+                "• Responde perfectamente en español y otros idiomas."
             ),
             inline=False
         )
         
-        help_embed.set_footer(text="Gemini AI - Powered by Google")
+        help_embed.set_footer(text="DeepSeek AI - Modelo avanzado de razonamiento")
         
         # Enviar el mensaje y configurarlo para que se borre después de 60 segundos
         await ctx.message.delete(delay=60)  # Borra el mensaje del usuario después de 60 segundos
@@ -470,7 +515,7 @@ class ComandoGemini(commands.Cog):
 
 async def setup(bot: commands.Bot):
     """
-    Configura el cog de Gemini en el bot.
+    Configura el cog de DeepSeek en el bot.
     
     Args:
         bot (commands.Bot): Instancia del bot

@@ -6,6 +6,7 @@ import asyncio
 import logging
 import sys
 from base.database import init_db  # Importar la función init_db
+# DeepSeek se configura en el cog correspondiente
 
 # Agregar el directorio raíz del proyecto al PYTHONPATH
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -17,6 +18,11 @@ logger = logging.getLogger(__name__)
 # Cargar las variables de entorno
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
+deepseek_api_key = os.getenv('DEEPSEEK_API_KEY')
+if deepseek_api_key:
+    logger.info("DeepSeek API key found.")
+else:
+    logger.warning("DEEPSEEK_API_KEY not found in environment variables. DeepSeek commands may not work.")
 
 # Configurar los intents del bot
 intents = discord.Intents.default()

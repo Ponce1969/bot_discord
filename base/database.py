@@ -297,7 +297,7 @@ init_db()
 faq_data = [
     {"question": "¿Qué puedes hacer?", "answer": ">ayuda y verás todo lo que puedo hacer en el chat por ti!!", "keyword": "hacer"},
     {"question": "¿Dónde puedo jugar?", "answer": "juega en el chat_juego_aventura !", "keyword": "jugar"},
-    {"question": "¿Tenemos alguna IA ?", "answer": "Si en el chat tenemos a Gemini y LLama usa > y nombre de la IA!", "keyword": "IA"},
+    {"question": "¿Tenemos alguna IA ?", "answer": "Si en el chat tenemos a DeepSeek y LLama usa > y nombre de la IA!", "keyword": "IA"},
     {"question": "¿Que juegos hay?", "answer": "Tenemos tateti y aventura !", "keyword": "juegos"},
     {"question": "¿Que musica tenemos?", "answer": "Nos conectamos a la api de youtube y podemos ver videos en el chat!", "keyword": "musica"},
     {"question": "¿Que hacen en este chat general?", "answer": "Estudiamos Python y usamos sus librerias!", "keyword": "chat"},

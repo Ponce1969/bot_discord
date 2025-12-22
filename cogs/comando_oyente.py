@@ -31,9 +31,9 @@ class OyenteCog(commands.Cog):
         self.bot = bot
         self.keywords = {
             "ia": {
-                "aliases": ["inteligencia artificial", "asistente", "gemini", "llama"],
+                "aliases": ["inteligencia artificial", "asistente", "deepseek", "llama"],
                 "faq": ["¿Qué IA tenemos?", "¿Tenemos alguna IA en el canal?", "¿Hay una IA en el canal?"],
-                "custom_response": "¡Sí! Tenemos asistentes IA como Gemini y Llama. Pregunta por '>ayuda ia' para más info."
+                "custom_response": "¡Sí! Tenemos asistentes IA como DeepSeek y Llama. Pregunta por '>ayuda ia' para más info."
             },
             "juegos": {
                 "aliases": ["jugar", "diversión", "tateti"],

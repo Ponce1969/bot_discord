@@ -1,5 +1,5 @@
 """
-Configuración para los modelos de IA Gemini.
+Configuración para los modelos de IA DeepSeek.
 Este módulo contiene todas las configuraciones necesarias para los modelos de texto e imagen.
 """
 from typing import Dict, List, Set
@@ -20,7 +20,7 @@ image_generation_config: Dict = {
     "max_output_tokens": 500,
 }
 
-# Tipos MIME soportados por Gemini Vision
+# Tipos MIME soportados por DeepSeek Vision
 SUPPORTED_MIME_TYPES: Set[str] = {
     'image/png',
     'image/jpeg',
@@ -62,7 +62,7 @@ BASE_EMBED_COLORS = [
     0xDC143C   # Carmesí
 ]
 
-# Mapeo de códigos de idioma para instrucciones a Gemini
+# Mapeo de códigos de idioma para instrucciones a DeepSeek
 LANGUAGE_MAP = {
     "es": "español",
     "en": "English",
@@ -76,8 +76,8 @@ LANGUAGE_MAP = {
     "ko": "한국어"
 }
 
-# Tiempo máximo de espera para respuestas de Gemini (en segundos)
-GEMINI_TIMEOUT = 20.0
+# Tiempo máximo de espera para respuestas de DeepSeek (en segundos)
+DEEPSEEK_TIMEOUT = 60.0
 
 # Colores para embeds
 EMBED_COLORS = {
