@@ -49,6 +49,11 @@ async def load_cogs(bot):
 async def on_ready():
     """Evento que se ejecuta cuando el bot está listo."""
     logger.info(f'Logged in as {bot.user}')
+    # Configurar el estado del bot para que se vea en línea
+    await bot.change_presence(
+        status=discord.Status.online,
+        activity=discord.Game(name=">ayuda para comandos")
+    )
 
 @bot.event
 async def on_disconnect():
