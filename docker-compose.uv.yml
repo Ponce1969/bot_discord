@@ -1,0 +1,81 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    env_file:
+      - .env
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+    restart: always
+    networks:
+      - bot-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    env_file:
+      - .env
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    ports:
+      - "8082:80"
+    depends_on:
+      - postgres
+    restart: always
+    networks:
+      - bot-network
+
+  bot-uv:
+    build:
+      context: .
+      dockerfile: Dockerfile.uv
+    command: uv run python pythonbot.py
+    volumes:
+      - .:/app
+      - uv_cache:/root/.cache/uv  # Cache de uv para builds más rápidos
+    env_file:
+      - .env
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    networks:
+      - bot-network
+    # Healthcheck para el bot
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import requests; requests.get(\"http://localhost:8000/health\")' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./imagenes:/usr/share/nginx/html/imagenes
+      - ./nginx/nginx.config:/etc/nginx/nginx.conf
+    restart: always
+    networks:
+      - bot-network
+
+networks:
+  bot-network:
+    driver: bridge
+
+volumes:
+  db_data:
+  pgadmin_data:
+  uv_cache:  # Cache persistente de uv
