@@ -32,9 +32,10 @@ services:
 
   bot:
     build: .
-    command: python /app/pythonbot.py
+    command: uv run python pythonbot.py
     volumes:
       - .:/app
+      - uv_cache:/root/.cache/uv  # Cache de uv para builds más rápidos
     env_file:
       - .env
     working_dir: /app
@@ -57,3 +58,4 @@ services:
 volumes:
   db_data:
   pgadmin_data:
+  uv_cache:  # Cache persistente de uv

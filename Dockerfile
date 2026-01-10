@@ -1,18 +1,33 @@
-FROM python:3.10-slim-buster
+FROM python:3.10-slim-bookworm
 
+# Instalar dependencias del sistema necesarias
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    libffi-dev \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalar uv - La forma más rápida y moderna
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+
+# Configurar directorio de trabajo
 WORKDIR /app
 
-# Instalar Poetry
-RUN pip install poetry
+# Configurar uv para no crear virtual env (usamos el contenedor como env)
+ENV UV_SYSTEM_PYTHON=1
 
-# Copiar pyproject.toml y poetry.lock para instalar dependencias
-COPY pyproject.toml poetry.lock* ./
+# Copiar archivos de configuración del proyecto
+COPY pyproject.toml ./
 
-# Instalar dependencias con Poetry
-RUN poetry config virtualenvs.create false && poetry lock && poetry install --no-root
+# Sincronizar dependencias con uv (súper rápido)
+RUN uv sync --frozen
 
-# Copiar el resto del código de la aplicación
+# Copiar el código de la aplicación
 COPY . .
 
-# Comando para ejecutar el bot
-CMD ["python", "/app/pythonbot.py"]
+# Exponer puerto (si es necesario)
+EXPOSE 8000
+
+# Comando para ejecutar el bot usando uv
+CMD ["uv", "run", "python", "pythonbot.py"]
