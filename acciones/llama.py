@@ -1,11 +1,11 @@
-import time
-import datetime
 import asyncio
-from groq import Groq
-from typing import Optional
-from discord import Embed
+import datetime
+
 import pytz
-from base.database import increment_llama_metric, add_response_time
+from discord import Embed
+from groq import Groq
+
+from base.database import add_response_time, increment_llama_metric
 from config.lla_config import GROQ_API_KEY, GROQ_MODEL
 
 # Configurar la zona horaria de Uruguay

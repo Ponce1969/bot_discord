@@ -1,0 +1,14 @@
+C:\Users\cerra\codigo\botDiscord\system_monitor\target\release\deps\serde-f780623242a28217.d: C:\Users\cerra\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\cerra\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\cerra\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\cerra\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\cerra\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs C:\Users\cerra\codigo\botDiscord\system_monitor\target\release\build\serde-b59479b6347b2838\out/private.rs
+
+C:\Users\cerra\codigo\botDiscord\system_monitor\target\release\deps\libserde-f780623242a28217.rlib: C:\Users\cerra\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\cerra\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\cerra\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\cerra\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\cerra\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs C:\Users\cerra\codigo\botDiscord\system_monitor\target\release\build\serde-b59479b6347b2838\out/private.rs
+
+C:\Users\cerra\codigo\botDiscord\system_monitor\target\release\deps\libserde-f780623242a28217.rmeta: C:\Users\cerra\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\cerra\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\cerra\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\cerra\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\cerra\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs C:\Users\cerra\codigo\botDiscord\system_monitor\target\release\build\serde-b59479b6347b2838\out/private.rs
+
+C:\Users\cerra\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs:
+C:\Users\cerra\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs:
+C:\Users\cerra\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs:
+C:\Users\cerra\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs:
+C:\Users\cerra\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs:
+C:\Users\cerra\codigo\botDiscord\system_monitor\target\release\build\serde-b59479b6347b2838\out/private.rs:
+
+# env-dep:OUT_DIR=C:\\Users\\cerra\\codigo\\botDiscord\\system_monitor\\target\\release\\build\\serde-b59479b6347b2838\\out

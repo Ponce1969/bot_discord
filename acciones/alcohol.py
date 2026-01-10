@@ -1,6 +1,7 @@
 # aca importamos randon para generar un mensaje aleatorio , de tomar alcohol ,solo y aconpañado.
 import random
 
+
 def tomar_solo(nombre: str) -> str:
     MENSAJE_CON_ALCOHOL = [
         f"!Que lindo {nombre} tomando solo, termino todo el barril de cerveza !",
@@ -53,7 +54,7 @@ def tomar_solo(nombre: str) -> str:
 
 
 def tomar_acompañado(invitador: str, invitado: str) -> str:
-    
+
     INVITAR_ALCOHOL = [
         f"Increible {invitador} invita a {invitado} a tomar cerveza.",
         f"{invitador} invita a {invitado} a tomar tequila.",
@@ -100,7 +101,7 @@ def tomar_acompañado(invitador: str, invitado: str) -> str:
         f"Te sugiero yo {invitador} que pruebes un buen fernet con coca{invitado}.",
         f"{invitador} Dice, que te parece si probamos un buen gin tonic {invitado}?",
         f"{invitador} Le ofrece a {invitado} un buen daiquiri de frutilla.",
-        f"{invitador} Le ofrece a {invitado} un coctel misterioso!!! .",          
+        f"{invitador} Le ofrece a {invitado} un coctel misterioso!!! .",
     ]
     return random.choice(INVITAR_ALCOHOL)
 

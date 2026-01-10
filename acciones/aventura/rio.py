@@ -1,7 +1,7 @@
 import asyncio
-from discord.ext.commands import Context
+
 from discord import Message
-import random
+from discord.ext.commands import Context
 
 """
 Aquí se desarrollarán las funciones y condicionales para la función del río
@@ -9,13 +9,13 @@ Aquí se desarrollarán las funciones y condicionales para la función del río
 
 async def manejar_rio(ctx: Context, nombre_ficticio: str) -> None:
     await ctx.send(f"Estás en el río {nombre_ficticio}. Te encuentras en la orilla de un río caudaloso rodeado de árboles antiguos y una niebla misteriosa. ¿Qué decides hacer? ¿Cruzar el río o seguir la orilla? (cruzar o orilla) 🏞️")
-    
+
     try:
         decision_camino = await obtener_decision(ctx, ["cruzar", "orilla"])
         if decision_camino == "cruzar":
-            await manejar_cruzar(ctx)  
+            await manejar_cruzar(ctx)
         elif decision_camino == "orilla":
-            await manejar_orilla(ctx)          
+            await manejar_orilla(ctx)
     except asyncio.TimeoutError:
         await ctx.send("¡Te has tardado mucho en decidir! El río se ha vuelto peligroso y debes regresar a la orilla. ⚠️")
 
@@ -170,4 +170,3 @@ async def manejar_usar_hechizo(ctx: Context) -> None:
 
 async def manejar_guardar_hechizo(ctx: Context) -> None:
     await ctx.send("Decides guardar el hechizo para más tarde. Regresas a la orilla, con la opción de usar el hechizo en otro momento. 🧙‍♂️")
- 

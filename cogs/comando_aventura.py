@@ -1,7 +1,8 @@
 # cogs/comando_aventura.py
-import discord
 from discord.ext import commands
+
 from config.avent_config import iniciar_juego
+
 
 class AventuraCog(commands.Cog):
     """Cog para manejar el juego de aventuras."""

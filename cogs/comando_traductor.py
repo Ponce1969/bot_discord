@@ -1,7 +1,10 @@
 import asyncio
+
 from discord.ext import commands
 from discord.ext.commands import Bot, Context
+
 from acciones.traductor import translate
+
 
 class ComandoTraductor(commands.Cog):
     def __init__(self, bot: Bot) -> None:
@@ -22,7 +25,7 @@ class ComandoTraductor(commands.Cog):
 
         translation = translate(text)
         mensaje = await ctx.send(translation)
-        
+
         # Esperar 30 segundos antes de borrar los mensajes
         await asyncio.sleep(30)
         await mensaje.delete()

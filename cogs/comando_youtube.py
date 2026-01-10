@@ -1,9 +1,11 @@
-from discord.ext import commands
 import asyncio
-from acciones.youtube import youtube_search
-from dotenv import load_dotenv
 import os
+
 import discord
+from discord.ext import commands
+from dotenv import load_dotenv
+
+from acciones.youtube import youtube_search
 
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()

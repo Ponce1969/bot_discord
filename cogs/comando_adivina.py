@@ -1,6 +1,8 @@
-from acciones.adivina import adivina
 from discord.ext import commands
 from discord.ext.commands import Bot, Context
+
+from acciones.adivina import adivina
+
 
 class Adivina(commands.Cog):
     def __init__(self, bot: Bot) -> None:
@@ -20,6 +22,6 @@ class Adivina(commands.Cog):
 
 async def setup(bot: Bot) -> None:
     await bot.add_cog(Adivina(bot))
-        
+
 
 

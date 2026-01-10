@@ -1,11 +1,13 @@
-from fuzzywuzzy import process
-from sqlalchemy.orm import Session
-from base.database import FAQ
+import logging
+import re
+import unicodedata
+
 import dask.dataframe as dd
 import pandas as pd
-import logging
-import unicodedata
-import re
+from fuzzywuzzy import process
+from sqlalchemy.orm import Session
+
+from base.database import FAQ
 
 # Configurar el logger
 logging.basicConfig(level=logging.INFO)  # Cambiar a DEBUG para más detalles

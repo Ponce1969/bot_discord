@@ -5,6 +5,7 @@
 
 import discord
 
+
 async def encuesta(ctx, pregunta: str, *opciones: str):
     if len(opciones) < 2:
         await ctx.send('Necesitas proporcionar al menos dos opciones.')

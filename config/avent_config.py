@@ -1,5 +1,12 @@
 import asyncio
-from acciones.aventura import manejar_cueva, manejar_montania, manejar_rio, manejar_selva
+
+from acciones.aventura import (
+    manejar_cueva,
+    manejar_montania,
+    manejar_rio,
+    manejar_selva,
+)
+
 
 async def iniciar_juego(ctx):
     await ctx.send("Bienvenido al emotivo juego de aventuras. Escribe 'inicio' para comenzar.")

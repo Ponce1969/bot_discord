@@ -1,13 +1,15 @@
 # Asocia las palabras clave con las preguntas y respuestas en la base de datos
 # y responde a las preguntas del usuario si se encuentra una coincidencia.
 # Este archivo es un ejemplo de cómo se puede implementar un oyente en un bot de Discord
-from base.database import get_db
-from acciones.oyente import fuzzy_match, direct_keyword_answer, fuzzy_suggestions
-from discord.ext import commands
-import discord
 import logging
-import unicodedata
 import re
+import unicodedata
+
+import discord
+from discord.ext import commands
+
+from acciones.oyente import direct_keyword_answer, fuzzy_match, fuzzy_suggestions
+from base.database import get_db
 
 # Configurar el logger
 logging.basicConfig(level=logging.INFO)

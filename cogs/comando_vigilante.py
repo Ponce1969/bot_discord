@@ -1,8 +1,11 @@
 import asyncio
-from discord.ext import commands
-from acciones.vigilante import PALABRAS_PROHIBIDAS, contiene_palabra_prohibida
-import discord
 from datetime import datetime, timedelta
+
+import discord
+from discord.ext import commands
+
+from acciones.vigilante import contiene_palabra_prohibida
+
 
 class Vigilante(commands.Cog):
     def __init__(self, bot, max_advertencias=3):
@@ -49,7 +52,7 @@ class Vigilante(commands.Cog):
                     ban_msg = await message.channel.send(f"No tengo permisos para banear a {message.author.mention}.")
                 except discord.HTTPException as e:
                     ban_msg = await message.channel.send(f"Ocurrió un error al intentar banear a {message.author.mention}: {e}")
-                
+
                 # Opcional: Limpiar las advertencias después de banear al usuario
                 del self.advertencias[message.author.id]
 
@@ -84,4 +87,3 @@ async def setup(bot):
     # Inicia la tarea de reset de advertencias
     asyncio.create_task(vigilante.reset_advertencias())
 
- 

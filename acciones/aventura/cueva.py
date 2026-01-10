@@ -1,6 +1,7 @@
 import asyncio
-from discord.ext.commands import Context
+
 from discord import Message
+from discord.ext.commands import Context
 
 """
     Maneja la situación de un encuentro en una cueva durante una aventura.
@@ -17,7 +18,7 @@ from discord import Message
 
 async def manejar_cueva(ctx: Context, nombre_ficticio: str) -> None:
     await ctx.send(f"{nombre_ficticio}, has llegado a una cueva misteriosa. ¿Qué camino quieres tomar? (entrar o rodear)")
-    
+
     try:
         camino = await obtener_decision(ctx, ["entrar", "rodear"])
         if camino == "entrar":
@@ -74,7 +75,7 @@ async def manejar_sin_espada(ctx: Context, nombre_ficticio: str) -> None:
         await manejar_sin_espada(ctx, nombre_ficticio)
 
 async def manejar_rodeo(ctx: Context, nombre_ficticio: str) -> None:
-  
+
     await ctx.send("¡Este camino que elegiste está infectado de ladrones! 🏴‍☠️ Debes esconderte y esperar a que se vayan.")
     await asyncio.sleep(5)
     await ctx.send("Los ladrones se han ido. Sigues tu camino en busca de nuevas aventuras.")

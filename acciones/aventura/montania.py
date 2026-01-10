@@ -1,6 +1,8 @@
 import asyncio
-from discord.ext.commands import Context
+
 from discord import Message
+from discord.ext.commands import Context
+
 
 async def manejar_montania(ctx: Context, nombre_ficticio: str) -> None:
     """
@@ -118,7 +120,6 @@ async def manejar_rodeo(ctx: Context) -> None:
 
 
 
-  
-            
-    
-    
+
+
+

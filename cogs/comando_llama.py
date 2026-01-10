@@ -1,9 +1,17 @@
-from discord.ext import commands
-from discord import File
-from acciones.llama import token_manager, groq_handler, registrar_metricas_llama, GroqSession
-from base.database import get_user_metrics, get_global_metrics
-from io import StringIO
 import time
+from io import StringIO
+
+from discord import File
+from discord.ext import commands
+
+from acciones.llama import (
+    GroqSession,
+    groq_handler,
+    registrar_metricas_llama,
+    token_manager,
+)
+from base.database import get_global_metrics, get_user_metrics
+
 
 class Llama(commands.Cog):
     def __init__(self, bot):
@@ -78,7 +86,8 @@ class Llama(commands.Cog):
     @commands.command(name='llama_dashboard')
     async def llama_dashboard(self, ctx):
         """Muestra un resumen visual simple de las métricas globales usando table2ascii."""
-        from table2ascii import table2ascii as t2a, PresetStyle
+        from table2ascii import PresetStyle
+        from table2ascii import table2ascii as t2a
         result = get_global_metrics()
         llama_uses, tokens_used, total_response_time, responses_as_file, api_failures = result
         avg_time = (total_response_time / llama_uses) if llama_uses else 0

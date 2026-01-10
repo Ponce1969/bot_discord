@@ -1,11 +1,14 @@
+import asyncio
+import logging
+import os
+import sys
+
 import discord
 from discord.ext.commands import Bot
 from dotenv import load_dotenv
-import os
-import asyncio
-import logging
-import sys
+
 from base.database import init_db  # Importar la función init_db
+
 # DeepSeek se configura en el cog correspondiente
 
 # Agregar el directorio raíz del proyecto al PYTHONPATH

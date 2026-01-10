@@ -1,6 +1,7 @@
 # Aca implementaremos la funcion translate que traducira el texto que le pasemos a español
 from translate import Translator
 
+
 def translate(text: str, to_lang: str = "es") -> str:
     """
     Traduce el texto dado al idioma especificado.
@@ -15,4 +16,3 @@ def translate(text: str, to_lang: str = "es") -> str:
         return translation
     except Exception as e:
         return f"Error al traducir: {e}"
- 

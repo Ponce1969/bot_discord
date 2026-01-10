@@ -1,8 +1,9 @@
-import discord
 from discord.ext import commands
-from base.database import get_db, TatetiWinner
 from tabulate import tabulate
+
 from acciones.tateti import TatetiSetup  # Importar TatetiSetup
+from base.database import TatetiWinner, get_db
+
 
 class TatetiCog(commands.Cog):
     def __init__(self, bot):

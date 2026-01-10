@@ -4,6 +4,7 @@
 
 import asyncio
 
+
 async def hola(usuario, nombre):
     mensajes = []
     mensajes.append(await usuario.send(f"Bienvenido a nuestro servidor, {nombre}.\n"))
@@ -16,8 +17,8 @@ async def hola(usuario, nombre):
     await asyncio.sleep(6)
     mensajes.append(await usuario.send("Disfruta de tu estancia en nuestro servidor.\n"))
     return mensajes
-    
-    
+
+
 
 
 

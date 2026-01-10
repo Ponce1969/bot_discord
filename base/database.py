@@ -2,14 +2,25 @@
 # También valida los datos antes de insertarlos y muestra un mensaje de error si los datos son inválidos.
 # Para ejecutar este script, debes tener la base de datos creada y configurada en el archivo .env.
 import os
-import pytz
-from sqlalchemy import Column, Integer, String, DateTime, Date, create_engine, Index, func, Text, ForeignKey, Boolean
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
-from sqlalchemy.exc import ProgrammingError
-from dotenv import load_dotenv
 from datetime import datetime, timedelta
+
 import pytz
+from dotenv import load_dotenv
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    create_engine,
+    func,
+)
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship, sessionmaker
 
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()
@@ -59,7 +70,7 @@ class GeminiChatSession(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(pytz.utc))
     last_updated = Column(DateTime, default=lambda: datetime.now(pytz.utc), onupdate=lambda: datetime.now(pytz.utc))
     is_active = Column(Boolean, default=True)
-    
+
     # Relación con los mensajes de la sesión
     messages = relationship("GeminiChatMessage", back_populates="session", cascade="all, delete-orphan")
 
@@ -71,7 +82,7 @@ class GeminiChatMessage(Base):
     role = Column(String, nullable=False)  # 'user' o 'model'
     content = Column(Text, nullable=False)
     timestamp = Column(DateTime, default=lambda: datetime.now(pytz.utc))
-    
+
     # Relación con la sesión
     session = relationship("GeminiChatSession", back_populates="messages")
 
@@ -159,21 +170,21 @@ def get_or_create_gemini_session(discord_user_id):
         GeminiChatSession: Sesión de chat de Gemini
     """
     db = next(get_db())
-    
+
     try:
         # Buscar una sesión activa existente
         session = db.query(GeminiChatSession).filter_by(
             discord_user_id=str(discord_user_id),
             is_active=True
         ).first()
-        
+
         # Si no existe, crear una nueva
         if not session:
             session = GeminiChatSession(discord_user_id=str(discord_user_id))
             db.add(session)
             db.commit()
             db.refresh(session)
-            
+
         return session
     finally:
         db.close()
@@ -191,26 +202,26 @@ def add_message_to_session(session_id, role, content):
         GeminiChatMessage: Mensaje añadido
     """
     db = next(get_db())
-    
+
     try:
         # Actualizar timestamp de la sesión
         session = db.query(GeminiChatSession).filter_by(id=session_id).first()
         if not session:
             return None
-        
+
         session.last_updated = datetime.now(pytz.utc)
-        
+
         # Añadir el mensaje
         message = GeminiChatMessage(
             session_id=session_id,
             role=role,
             content=content
         )
-        
+
         db.add(message)
         db.commit()
         db.refresh(message)
-        
+
         return message
     finally:
         db.close()
@@ -227,12 +238,12 @@ def get_session_messages(session_id, limit=20):
         list: Lista de mensajes
     """
     db = next(get_db())
-    
+
     try:
         messages = db.query(GeminiChatMessage).filter_by(
             session_id=session_id
         ).order_by(GeminiChatMessage.timestamp).limit(limit).all()
-        
+
         return messages
     finally:
         db.close()
@@ -248,19 +259,19 @@ def reset_gemini_session(discord_user_id):
         GeminiChatSession: Nueva sesión de chat
     """
     db = next(get_db())
-    
+
     try:
         # Desactivar todas las sesiones existentes
         db.query(GeminiChatSession).filter_by(
             discord_user_id=str(discord_user_id)
         ).update({GeminiChatSession.is_active: False})
-        
+
         # Crear nueva sesión
         new_session = GeminiChatSession(discord_user_id=str(discord_user_id))
         db.add(new_session)
         db.commit()
         db.refresh(new_session)
-        
+
         return new_session
     finally:
         db.close()
@@ -273,15 +284,15 @@ def prune_old_sessions(days_inactive=30):
         days_inactive (int): Número de días de inactividad para marcar como inactiva
     """
     db = next(get_db())
-    
+
     try:
         cutoff_date = datetime.now(pytz.utc) - timedelta(days=days_inactive)
-        
+
         db.query(GeminiChatSession).filter(
             GeminiChatSession.last_updated < cutoff_date,
             GeminiChatSession.is_active == True
         ).update({GeminiChatSession.is_active: False})
-        
+
         db.commit()
     finally:
         db.close()
@@ -313,6 +324,7 @@ def validate_faq_data(faq):
 
 # Importar la función de normalización para máxima robustez
 from acciones.oyente import normalize_text
+
 
 # Insertar las preguntas y respuestas en la base de datos usando yield
 def insert_faq_data():

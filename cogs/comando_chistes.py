@@ -1,8 +1,11 @@
 # aca desarrollamos la funcion de chistes random
 import asyncio
+
 from discord.ext import commands
 from discord.ext.commands import Bot, Context
+
 from acciones.chistes import chistes
+
 
 class ComandoChistes(commands.Cog):
     """Cog para el comando de chistes."""
@@ -21,7 +24,7 @@ class ComandoChistes(commands.Cog):
 
         try:
             mensaje = await ctx.send(chistes())
-            
+
             # Esperar 30 segundos antes de borrar los mensajes
             await asyncio.sleep(30)
             await mensaje.delete()

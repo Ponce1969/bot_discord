@@ -1,6 +1,6 @@
+
 import aiohttp
-import asyncio
-from googleapiclient.discovery import build
+
 
 async def youtube_search(api_key, search_query, max_results=5):
     """
@@ -19,7 +19,7 @@ async def youtube_search(api_key, search_query, max_results=5):
         "type": "video",
         "key": api_key
     }
-    
+
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(url, params=params) as response:

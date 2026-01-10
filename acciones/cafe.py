@@ -15,7 +15,7 @@ def cafe(tipo: str) -> str:
     return cafe.get(tipo, "☕ cafe solo")
 
 def opciones_cafe() -> str:
-    opciones = """
+    opciones = r"""
 \`\`\`
 Elige un tipo de café para tomar:
 1. ☕ cafe espresso

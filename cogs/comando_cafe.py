@@ -1,10 +1,13 @@
 # cogs/cafe.py
 # Description: Comando de café
 # Importar librerías
+from asyncio import TimeoutError  # Importar solo TimeoutError
+
 from discord.ext import commands
 from discord.ext.commands import Bot, Context
+
 from acciones.cafe import cafe, opciones_cafe
-from asyncio import TimeoutError  # Importar solo TimeoutError
+
 
 class Cafe(commands.Cog):
     def __init__(self, bot: Bot) -> None:

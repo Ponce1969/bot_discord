@@ -1,7 +1,9 @@
-import discord
-import datetime
-from pytz import timezone
 import asyncio
+import datetime
+
+import discord
+from pytz import timezone
+
 
 async def create_info_embed():
     """
@@ -17,7 +19,7 @@ async def create_info_embed():
 
     # Leer temperatura del procesador
     try:
-        with open('/sys/class/thermal/thermal_zone0/temp', 'r') as temp_file:
+        with open('/sys/class/thermal/thermal_zone0/temp') as temp_file:
             cpu_temp = int(temp_file.read()) / 1000  # Convertir de miligrados a grados
         embed.add_field(name="Temperatura del Procesador", value=f"{cpu_temp}°C")
     except Exception as e:
@@ -31,4 +33,4 @@ async def handle_info_error(ctx, error):
     """
     response = await ctx.send(f"Error en la función info: {error}")
     await asyncio.sleep(10)
-    await response.delete() 
+    await response.delete()

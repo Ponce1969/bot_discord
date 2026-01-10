@@ -1,7 +1,6 @@
 # acciones/registrarse.py
 
-from sqlalchemy.orm import Session
-from base.database import get_db, User
+from base.database import User, get_db
 
 
 async def register(discord_id: str, username: str) -> User:

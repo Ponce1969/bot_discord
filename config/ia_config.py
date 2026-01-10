@@ -2,10 +2,9 @@
 Configuración para los modelos de IA DeepSeek.
 Este módulo contiene todas las configuraciones necesarias para los modelos de texto e imagen.
 """
-from typing import Dict, List, Set
 
 # Configuración para generación de texto
-text_generation_config: Dict = {
+text_generation_config: dict = {
     "temperature": 0.9,  # Controla la creatividad de las respuestas
     "top_p": 1,         # Núcleo de probabilidad acumulativa
     "top_k": 1,         # Número de tokens a considerar
@@ -13,7 +12,7 @@ text_generation_config: Dict = {
 }
 
 # Configuración para generación de imágenes
-image_generation_config: Dict = {
+image_generation_config: dict = {
     "temperature": 0.4,
     "top_p": 1,
     "top_k": 32,
@@ -21,7 +20,7 @@ image_generation_config: Dict = {
 }
 
 # Tipos MIME soportados por DeepSeek Vision
-SUPPORTED_MIME_TYPES: Set[str] = {
+SUPPORTED_MIME_TYPES: set[str] = {
     'image/png',
     'image/jpeg',
     'image/webp',
@@ -30,7 +29,7 @@ SUPPORTED_MIME_TYPES: Set[str] = {
 }
 
 # Configuración de seguridad para filtrar contenido inapropiado
-safety_settings: List[Dict] = [
+safety_settings: list[dict] = [
     {
         "category": "HARM_CATEGORY_HARASSMENT",
         "threshold": "BLOCK_MEDIUM_AND_ABOVE"

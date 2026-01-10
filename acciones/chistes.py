@@ -2,6 +2,7 @@
 
 import random
 
+
 def chistes():
     chistes = [
         "¿Por qué los pájaros no usan Facebook? Porque ya tienen Twitter.",
@@ -51,7 +52,7 @@ def chistes():
         "¿Qué le dice un .GIF a un .JPEG? -Anímate viejo.",
         "Los verdaderos programadores programan en binario.",
         "No te despedirán del trabajo, si nunca comentas tu código y además eres el único que sabe cómo funciona.",
-        
+
     ]
-    
+
     return random.choice(chistes)

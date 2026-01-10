@@ -3,7 +3,6 @@
 # Diccionario de palabras prohibidas por categoría
 import unicodedata
 
-
 PALABRAS_PROHIBIDAS = {
     "español": [
         "bastardo",
@@ -64,4 +63,3 @@ def contiene_palabra_prohibida(mensaje):
             if normalizar_texto(palabra) in mensaje_normalizado:  # Normalizar la palabra prohibida
                 return palabra
     return None
- 

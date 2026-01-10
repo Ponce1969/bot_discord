@@ -1,6 +1,8 @@
-from discord.ext import commands
-from acciones.palabras_clave import palabras_clave
 import logging
+
+from discord.ext import commands
+
+from acciones.palabras_clave import palabras_clave
 
 # Configurar el logger
 logging.basicConfig(level=logging.INFO)
@@ -15,10 +17,10 @@ class ClaveCog(commands.Cog):
         mensaje = "Aquí están las palabras clave que puedes usar:\n\n"
         for clave, descripcion in palabras_clave.items():
             mensaje += f"**{clave}**: {descripcion}\n"
-        
+
         # Enviar el mensaje y eliminarlo después de 30 segundos
         await ctx.send(mensaje, delete_after=30)
-        
+
         # Eliminar el mensaje del usuario después de 30 segundos
         await ctx.message.delete(delay=30)
 
