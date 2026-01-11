@@ -29,3 +29,14 @@ docker-compose.override.yml
 *.njsproj
 *.sln
 *.sw?
+
+# Rust build artifacts
+system_monitor/target/
+*.rlib
+*.rmeta
+
+# Migration backups
+backup_migration/
+
+# Poetry legacy (migrated to uv)
+poetry.lock

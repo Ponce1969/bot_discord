@@ -1,3 +1,4 @@
+# Dockerfile moderno con uv - Sin pip, 100% uv workflow
 FROM python:3.10-slim-bookworm
 
 # Instalar dependencias del sistema necesarias

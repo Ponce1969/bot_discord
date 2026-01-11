@@ -1,7 +1,6 @@
-
 services:
   postgres:
-    image: postgres:16-alpine  # Especificamos versión 16 para mantener compatibilidad
+    image: postgres:16-alpine
     env_file:
       - .env
     volumes:
@@ -14,6 +13,8 @@ services:
     ports:
       - "5432:5432"
     restart: always
+    networks:
+      - bot-network
 
   pgadmin:
     image: dpage/pgadmin4
@@ -29,9 +30,13 @@ services:
     depends_on:
       - postgres
     restart: always
+    networks:
+      - bot-network
 
-  bot:
-    build: .
+  bot-uv:
+    build:
+      context: .
+      dockerfile: Dockerfile.uv
     command: uv run python pythonbot.py
     volumes:
       - ./acciones:/app/acciones
@@ -50,6 +55,8 @@ services:
       postgres:
         condition: service_healthy
     restart: always
+    networks:
+      - bot-network
 
   nginx:
     image: nginx:alpine
@@ -59,6 +66,12 @@ services:
       - ./imagenes:/usr/share/nginx/html/imagenes
       - ./nginx/nginx.config:/etc/nginx/nginx.conf
     restart: always
+    networks:
+      - bot-network
+
+networks:
+  bot-network:
+    driver: bridge
 
 volumes:
   db_data:
