@@ -277,8 +277,8 @@ impl SystemMetrics {
             };
             
             storage_metrics.push(StorageMetrics {
-                name: disk.name().to_string(),
-                mount_point: disk.mount_point().to_string(),
+                name: disk.name().to_string_lossy().to_string(),
+                mount_point: disk.mount_point().to_string_lossy().to_string(),
                 total,
                 used,
                 available,
