@@ -22,6 +22,7 @@ def run_command(cmd, cwd=None):
 
     return result.returncode == 0
 
+
 def check_rust_installation():
     """Verificar que Rust esté instalado"""
     print("🦀 Verificando instalación de Rust...")
@@ -37,6 +38,7 @@ def check_rust_installation():
 
     print("✅ Rust está instalado correctamente")
     return True
+
 
 def build_rust_component():
     """Compilar el componente Rust"""
@@ -54,8 +56,8 @@ def build_rust_component():
 
     # Verificar que el binary se creó
     binary_path = rust_dir / "target" / "release" / "system_monitor"
-    if os.name == 'nt':  # Windows
-        binary_path = binary_path.with_suffix('.exe')
+    if os.name == "nt":  # Windows
+        binary_path = binary_path.with_suffix(".exe")
 
     if not binary_path.exists():
         print(f"❌ Binary no encontrado en {binary_path}")
@@ -64,13 +66,14 @@ def build_rust_component():
     print(f"✅ Binary compilado exitosamente: {binary_path}")
     return True
 
+
 def test_rust_component():
     """Probar el componente Rust"""
     print("🧪 Probando componente Rust...")
 
     binary_path = Path("system_monitor/target/release/system_monitor")
-    if os.name == 'nt':  # Windows
-        binary_path = binary_path.with_suffix('.exe')
+    if os.name == "nt":  # Windows
+        binary_path = binary_path.with_suffix(".exe")
 
     if not binary_path.exists():
         print("❌ Binary no encontrado para testing")
@@ -84,13 +87,15 @@ def test_rust_component():
     print("✅ Componente Rust funciona correctamente")
     return True
 
+
 def setup_permissions():
     """Configurar permisos del binary (Linux/Mac)"""
-    if os.name != 'nt':  # No Windows
+    if os.name != "nt":  # No Windows
         binary_path = Path("system_monitor/target/release/system_monitor")
         if binary_path.exists():
             os.chmod(binary_path, 0o755)
             print("✅ Permisos configurados")
+
 
 def main():
     """Función principal"""
@@ -121,8 +126,8 @@ def main():
 
         # Mostrar ubicación del binary
         binary_path = Path("system_monitor/target/release/system_monitor")
-        if os.name == 'nt':
-            binary_path = binary_path.with_suffix('.exe')
+        if os.name == "nt":
+            binary_path = binary_path.with_suffix(".exe")
 
         print(f"\n📍 Binary ubicado en: {binary_path.absolute()}")
 
@@ -132,6 +137,7 @@ def main():
     except Exception as e:
         print(f"\n💥 Error durante el build: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

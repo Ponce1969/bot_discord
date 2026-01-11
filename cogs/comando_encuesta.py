@@ -11,7 +11,7 @@ class EncuestaCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name='encuesta')
+    @commands.command(name="encuesta")
     async def encuesta_command(self, ctx, pregunta: str, *opciones: str):
         """
         Comando para crear una encuesta.
@@ -25,6 +25,7 @@ class EncuestaCog(commands.Cog):
 
         # Eliminar el mensaje del embed después de 1 hora (3600 segundos)
         await embed_message.delete(delay=3600)
+
 
 # Función para registrar el cog en el bot
 async def setup(bot):

@@ -2,7 +2,6 @@ import random
 
 
 def abrazo_nadie(nombre: str) -> str:
-
     MENSAJE_SIN_NOMBRE = [
         f"No puedes abrazar al aire, {nombre}. ¿Por qué no abrazas a alguien en persona?",
         f"Oye, {nombre}, No puedes simplemente abrazar a la nada. !Ve y abraza a alguien!",
@@ -32,7 +31,6 @@ def abrazo_nadie(nombre: str) -> str:
 
 
 def me_abrazo(nombre: str) -> str:
-
     MENSAJE_EGOCENTRICO = [
         f"{nombre} se abraza a si mismo. ¡Que egocéntrico!",
         f"Parece que {nombre}, disfruta de su propia compañia.",
@@ -56,12 +54,11 @@ def me_abrazo(nombre: str) -> str:
         f"Bueno {nombre}, si te abrazas a ti mismo, nosotros te abrazamos a ti.",
         f"{nombre}, no te olvides de que nosotros tambien te queremos mucho.",
         f"{nombre}, recuerda que al abrazarte a ti mismo es una forma de procesar tus emociones.",
-
     ]
     return random.choice(MENSAJE_EGOCENTRICO)
 
-def abrazo_con_nombre(abrazador: str, abrazado: str) -> str:
 
+def abrazo_con_nombre(abrazador: str, abrazado: str) -> str:
     MENSAJE_CON_AMOR = [
         f"!Que lindo {abrazador} abraza a {abrazado}!",
         f"{abrazador} envuelve a {abrazado} en un calido abrazo.",
@@ -97,12 +94,12 @@ def abrazo_con_nombre(abrazador: str, abrazado: str) -> str:
         f"El fuego se enciende al ver a {abrazador} abrazar a {abrazado}.",
         f"El agua se agita al ver a {abrazador} abrazar a {abrazado}.",
         f"El viento se calma al ver a {abrazador} abrazar a {abrazado}.",
-        f'Entre mate y mate {abrazador} abraza a {abrazado}.',
-        f'Entre asado y asado {abrazador} abraza a {abrazado}.',
-        f'Entre empanada y empanada {abrazador} abraza a {abrazado}.',
-        f'Entre fernet y fernet {abrazador} abraza a {abrazado}.',
-        f'Entre vino y vino {abrazador} abraza a {abrazado}.',
-        f'Entre cerveza y cerveza {abrazador} abraza a {abrazado}.',
+        f"Entre mate y mate {abrazador} abraza a {abrazado}.",
+        f"Entre asado y asado {abrazador} abraza a {abrazado}.",
+        f"Entre empanada y empanada {abrazador} abraza a {abrazado}.",
+        f"Entre fernet y fernet {abrazador} abraza a {abrazado}.",
+        f"Entre vino y vino {abrazador} abraza a {abrazado}.",
+        f"Entre cerveza y cerveza {abrazador} abraza a {abrazado}.",
         f"El mejor inpulso de {abrazador} es abrazar a {abrazado}.",
         f"La mejor medicina de {abrazador} es abrazar a {abrazado}.",
         f"La mejor terapia de {abrazador} es abrazar a {abrazado}.",
@@ -116,6 +113,5 @@ def abrazo_con_nombre(abrazador: str, abrazado: str) -> str:
         f"El abrazo de {abrazador} a {abrazado} es magico.",
         f"Ese abrazo que te quiebra las costillas de {abrazador} a {abrazado}.",
         f"El abrazo de {abrazador} a {abrazado} es de otro mundo.",
-
     ]
     return random.choice(MENSAJE_CON_AMOR)

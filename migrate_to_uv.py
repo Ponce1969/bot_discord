@@ -26,16 +26,12 @@ def run_command(cmd, check=True):
 
     return result
 
+
 def backup_current_setup():
     """Hacer backup de la configuración actual"""
     print("📦 Haciendo backup de configuración actual...")
 
-    backup_files = [
-        "pyproject.toml",
-        "poetry.lock",
-        "Dockerfile",
-        "docker-compose.yml"
-    ]
+    backup_files = ["pyproject.toml", "poetry.lock", "Dockerfile", "docker-compose.yml"]
 
     backup_dir = Path("backup_poetry")
     backup_dir.mkdir(exist_ok=True)
@@ -45,6 +41,7 @@ def backup_current_setup():
             shutil.copy2(file, backup_dir / file)
             print(f"✅ Backup: {file} -> {backup_dir}/{file}")
 
+
 def install_uv():
     """Instalar uv si no está disponible"""
     print("🚀 Verificando instalación de uv...")
@@ -52,12 +49,13 @@ def install_uv():
     result = run_command("uv --version", check=False)
     if result.returncode != 0:
         print("📥 Instalando uv...")
-        if os.name == 'nt':  # Windows
-            run_command("powershell -c \"irm https://astral.sh/uv/install.ps1 | iex\"")
+        if os.name == "nt":  # Windows
+            run_command('powershell -c "irm https://astral.sh/uv/install.ps1 | iex"')
         else:  # Linux/Mac
             run_command("curl -LsSf https://astral.sh/uv/install.sh | sh")
     else:
         print("✅ uv ya está instalado")
+
 
 def migrate_dependencies():
     """Migrar de Poetry a uv"""
@@ -74,6 +72,7 @@ def migrate_dependencies():
 
     print("✅ Dependencias sincronizadas con uv")
 
+
 def update_docker_setup():
     """Actualizar configuración de Docker"""
     print("🐳 Actualizando configuración Docker...")
@@ -87,6 +86,7 @@ def update_docker_setup():
     if Path("docker-compose.uv.yml").exists():
         shutil.move("docker-compose.uv.yml", "docker-compose.yml")
         print("✅ docker-compose.yml actualizado para uv")
+
 
 def test_migration():
     """Probar que la migración funciona"""
@@ -115,7 +115,10 @@ def test_migration():
         print("⚠️ Hay issues de código (revisar después)")
 
     # Probar que el bot puede importarse
-    result = run_command("uv run python -c 'import pythonbot; print(\"Bot importado correctamente\")'", check=False)
+    result = run_command(
+        "uv run python -c 'import pythonbot; print(\"Bot importado correctamente\")'",
+        check=False,
+    )
     if result.returncode == 0:
         print("✅ Bot se puede importar correctamente")
     else:
@@ -124,13 +127,14 @@ def test_migration():
 
     return True
 
+
 def cleanup_old_files():
     """Limpiar archivos de Poetry"""
     print("🧹 Limpiando archivos de Poetry...")
 
     files_to_remove = [
         "poetry.lock",
-        ".venv"  # Si existe un venv de Poetry
+        ".venv",  # Si existe un venv de Poetry
     ]
 
     for file in files_to_remove:
@@ -141,6 +145,7 @@ def cleanup_old_files():
             else:
                 path.unlink()
             print(f"🗑️ Eliminado: {file}")
+
 
 def main():
     """Función principal de migración"""
@@ -165,8 +170,12 @@ def main():
             print("\n🎉 ¡MIGRACIÓN COMPLETADA EXITOSAMENTE!")
             print("📋 Próximos pasos con uv moderno:")
             print("   1. uv sync                    # Sincronizar dependencias")
-            print("   2. uv fmt                     # Formatear código (reemplaza black)")
-            print("   3. uv check                   # Analizar código (reemplaza ruff+mypy)")
+            print(
+                "   2. uv fmt                     # Formatear código (reemplaza black)"
+            )
+            print(
+                "   3. uv check                   # Analizar código (reemplaza ruff+mypy)"
+            )
             print("   4. uv run python pythonbot.py # Ejecutar bot")
             print("   5. docker-compose up --build  # Levantar con Docker + uv")
             print("\n💡 Comandos útiles:")
@@ -177,7 +186,7 @@ def main():
 
             # Paso 6: Limpiar archivos antiguos (opcional)
             response = input("\n¿Quieres limpiar archivos de Poetry? (y/N): ")
-            if response.lower() == 'y':
+            if response.lower() == "y":
                 cleanup_old_files()
         else:
             print("\n❌ Error en la migración. Revisa los logs arriba.")
@@ -187,6 +196,7 @@ def main():
         print(f"\n💥 Error durante la migración: {e}")
         print("💡 Puedes restaurar desde backup_poetry/ si es necesario")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

@@ -9,7 +9,9 @@ from acciones.traductor import translate
 class ComandoTraductor(commands.Cog):
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
-        self.canal_permitido_id = 1172339507899670600  # ID del canal donde se permitirá usar el comando
+        self.canal_permitido_id = (
+            1172339507899670600  # ID del canal donde se permitirá usar el comando
+        )
 
     @commands.command(name="traducir")
     async def traducir(self, ctx: Context, *, text: str) -> None:
@@ -30,6 +32,7 @@ class ComandoTraductor(commands.Cog):
         await asyncio.sleep(30)
         await mensaje.delete()
         await ctx.message.delete()
+
 
 async def setup(bot: Bot) -> None:
     await bot.add_cog(ComandoTraductor(bot))

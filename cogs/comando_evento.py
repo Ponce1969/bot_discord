@@ -22,7 +22,7 @@ class EventoCog(commands.Cog):
                 embed = discord.Embed(
                     title="**Saliste del canal de voz!!**",
                     description=f"Gracias por tu ayuda, en el canal de voz de Gonzalo Ponce, {member.name}",
-                    color=0x00FF00  # Color verde en hexadecimal
+                    color=0x00FF00,  # Color verde en hexadecimal
                 )
 
                 # Enviar el mensaje embed
@@ -31,6 +31,7 @@ class EventoCog(commands.Cog):
                 # Esperar 80 segundos antes de borrar el mensaje
                 await asyncio.sleep(80)
                 await response.delete()
+
 
 async def setup(bot):
     """Configura el Cog."""

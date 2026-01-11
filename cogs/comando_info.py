@@ -10,7 +10,9 @@ from acciones.system_metrics_rust import create_advanced_info_embed
 class Info(commands.Cog):
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
-        self.canal_permitido_id = 1172339507899670600  # ID del canal donde se permitirá usar el comando
+        self.canal_permitido_id = (
+            1172339507899670600  # ID del canal donde se permitirá usar el comando
+        )
 
     @commands.command(name="info")
     async def info(self, ctx: Context) -> None:
@@ -26,7 +28,9 @@ class Info(commands.Cog):
             loading_msg = await ctx.send("🔄 Obteniendo métricas del sistema...")
 
             # Crear embed avanzado con Rust
-            embed = await create_advanced_info_embed(ctx.guild.name if ctx.guild else "OrangePi 5 Plus")
+            embed = await create_advanced_info_embed(
+                ctx.guild.name if ctx.guild else "OrangePi 5 Plus"
+            )
 
             # Actualizar mensaje con las métricas
             await loading_msg.edit(content=None, embed=embed)
@@ -65,13 +69,14 @@ class Info(commands.Cog):
 
                 await ctx.send(
                     "📊 Métricas del sistema en formato JSON:",
-                    file=File(fp=buffer, filename="system_metrics.json")
+                    file=File(fp=buffer, filename="system_metrics.json"),
                 )
             else:
                 await ctx.send("❌ Error obteniendo métricas del sistema")
 
         except Exception as e:
             await ctx.send(f"Error: {str(e)}")
+
 
 async def setup(bot: Bot) -> None:
     await bot.add_cog(Info(bot))

@@ -11,13 +11,14 @@ class AventuraCog(commands.Cog):
         self.bot = bot
         self.canal_juego_id = 1279149582936182816  # ID del canal permitido
 
-    @commands.command(name='aventura')
+    @commands.command(name="aventura")
     async def iniciar_aventura(self, ctx):
         """Comando para iniciar el juego de aventuras."""
         if ctx.channel.id != self.canal_juego_id:
             await ctx.send("Solo puedes jugar en el canal #chat_juego_aventura.")
             return
         await iniciar_juego(ctx)
+
 
 async def setup(bot):
     """Configura el Cog."""

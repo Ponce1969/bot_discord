@@ -9,7 +9,9 @@ from acciones.alcohol import tomar_acompañado, tomar_solo
 class ComandoAlcohol(commands.Cog):
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
-        self.canal_permitido_id = 1172339507899670600  # ID del canal donde se permitirá jugar
+        self.canal_permitido_id = (
+            1172339507899670600  # ID del canal donde se permitirá jugar
+        )
 
     @commands.command(name="tomar")
     async def tomar(self, ctx: Context, nombre: str = None) -> None:
@@ -26,6 +28,7 @@ class ComandoAlcohol(commands.Cog):
         await asyncio.sleep(30)
         await mensaje.delete()
         await ctx.message.delete()
+
 
 async def setup(bot: Bot) -> None:
     await bot.add_cog(ComandoAlcohol(bot))

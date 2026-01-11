@@ -1,4 +1,3 @@
-
 import aiohttp
 
 
@@ -17,7 +16,7 @@ async def youtube_search(api_key, search_query, max_results=5):
         "maxResults": max_results,
         "q": search_query,
         "type": "video",
-        "key": api_key
+        "key": api_key,
     }
 
     async with aiohttp.ClientSession() as session:
@@ -26,7 +25,9 @@ async def youtube_search(api_key, search_query, max_results=5):
                 if response.status == 200:
                     return await response.json()
                 else:
-                    print(f"Error al realizar la búsqueda en YouTube: {response.status}")
+                    print(
+                        f"Error al realizar la búsqueda en YouTube: {response.status}"
+                    )
                     return None
         except Exception as e:
             print(f"Error al realizar la búsqueda en YouTube: {e}")

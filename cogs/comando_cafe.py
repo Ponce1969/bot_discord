@@ -12,7 +12,9 @@ from acciones.cafe import cafe, opciones_cafe
 class Cafe(commands.Cog):
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
-        self.canal_permitido_id = 1172339507899670600  # ID del canal donde se permitirá usar el comando
+        self.canal_permitido_id = (
+            1172339507899670600  # ID del canal donde se permitirá usar el comando
+        )
 
     @commands.command(name="cafe")
     async def cafe_cmd(self, ctx: Context) -> None:
@@ -32,20 +34,26 @@ class Cafe(commands.Cog):
         while True:
             try:
                 # Esperar la respuesta del usuario
-                msg = await self.bot.wait_for('message', check=check, timeout=30.0)
+                msg = await self.bot.wait_for("message", check=check, timeout=30.0)
                 if not msg.content.isdigit():
-                    await ctx.send(f"{ctx.author.mention}, por favor ingresa un número entero válido.")
+                    await ctx.send(
+                        f"{ctx.author.mention}, por favor ingresa un número entero válido."
+                    )
                     await ctx.send(opciones_cafe())
                     continue
 
                 tipo = msg.content
                 cafe_tipo = cafe(tipo)
-                await ctx.send(f"Aquí tienes el {cafe_tipo} caliente que pediste, {ctx.author.mention}!")
+                await ctx.send(
+                    f"Aquí tienes el {cafe_tipo} caliente que pediste, {ctx.author.mention}!"
+                )
                 break
             except TimeoutError:  # Capturar el error de tiempo de espera
-                await ctx.send(f"{ctx.author.mention}, tardaste demasiado en responder. Intenta nuevamente.")
+                await ctx.send(
+                    f"{ctx.author.mention}, tardaste demasiado en responder. Intenta nuevamente."
+                )
                 break
+
 
 async def setup(bot: Bot) -> None:
     await bot.add_cog(Cafe(bot))
-

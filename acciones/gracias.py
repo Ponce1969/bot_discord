@@ -15,4 +15,3 @@ def dar_gracias(db: Session, discord_id: str, username: str) -> int:
     user.thanks_count += 1
     db.commit()
     return user.thanks_count
-

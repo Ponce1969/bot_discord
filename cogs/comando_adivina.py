@@ -7,7 +7,9 @@ from acciones.adivina import adivina
 class Adivina(commands.Cog):
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
-        self.canal_permitido_id = 1172339507899670600  # ID del canal donde se permitirá jugar
+        self.canal_permitido_id = (
+            1172339507899670600  # ID del canal donde se permitirá jugar
+        )
 
     @commands.command(name="adivina")
     async def adivina_cmd(self, ctx: Context) -> None:
@@ -20,8 +22,6 @@ class Adivina(commands.Cog):
 
         await adivina(ctx, self.bot)  # Pasamos el bot como parámetro
 
+
 async def setup(bot: Bot) -> None:
     await bot.add_cog(Adivina(bot))
-
-
-

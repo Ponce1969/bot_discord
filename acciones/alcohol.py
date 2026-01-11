@@ -54,7 +54,6 @@ def tomar_solo(nombre: str) -> str:
 
 
 def tomar_acompañado(invitador: str, invitado: str) -> str:
-
     INVITAR_ALCOHOL = [
         f"Increible {invitador} invita a {invitado} a tomar cerveza.",
         f"{invitador} invita a {invitado} a tomar tequila.",
@@ -104,5 +103,3 @@ def tomar_acompañado(invitador: str, invitado: str) -> str:
         f"{invitador} Le ofrece a {invitado} un coctel misterioso!!! .",
     ]
     return random.choice(INVITAR_ALCOHOL)
-
-

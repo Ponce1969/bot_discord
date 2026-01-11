@@ -2,6 +2,7 @@
 
 # Sistema de ayuda por categorías para Discord
 
+
 def ayuda(categoria: str = None) -> str:
     """
     Devuelve el mensaje de ayuda general o por categoría.
@@ -63,7 +64,7 @@ def ayuda(categoria: str = None) -> str:
             "Agradece a alguien y suma puntos al ranking.\n\n"
             "**>ranking**\n"
             "Muestra el ranking de agradecimientos.\n\n"
-            "**>encuesta \"Pregunta\" \"Opción1\" \"Opción2\"...**\n"
+            '**>encuesta "Pregunta" "Opción1" "Opción2"...**\n'
             "Crea una encuesta rápida.\n\n"
             "**>claves**\n"
             "Muestra palabras clave para activar respuestas sin prefijo.\n\n"
@@ -71,10 +72,7 @@ def ayuda(categoria: str = None) -> str:
             "Haz preguntas comunes, el bot responde automáticamente."
         )
     elif categoria == "moderacion":
-        return (
-            "**>vigilante**\n"
-            "Monitorea malas palabras y aplica advertencias."
-        )
+        return "**>vigilante**\nMonitorea malas palabras y aplica advertencias."
     elif categoria == "otros":
         return (
             "**>ayuda**\n"

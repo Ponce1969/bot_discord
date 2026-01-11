@@ -3,7 +3,6 @@ import random
 
 
 def frases_motivadoras(nombre: str) -> str:
-
     FRASES_PARA_MOTIVAR = [
         f"{nombre} La suerte de la vida es tener amigos como vos.",
         f"{nombre} La suerte de tu dia depende de como lo afrontes desde primera hora de la mañana.",
@@ -48,6 +47,5 @@ def frases_motivadoras(nombre: str) -> str:
         f"Nunca, nunca, {nombre} nunca abandones.",
         f"{nombre} La diligencia es la madre de la buena suerte.",
         f"{nombre} Si no puedes volar, corre. Si no puedes correr, camina. Si no puedes caminar, gatea. Pero hagas lo que hagas, sigue adelante.",
-
     ]
     return random.choice(FRASES_PARA_MOTIVAR)

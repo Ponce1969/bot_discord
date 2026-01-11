@@ -7,11 +7,12 @@ from base.database import User, get_db
 
 # cogs/comando_register.py
 
+
 class RegisterCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name='register')
+    @commands.command(name="register")
     async def register_user(self, ctx):
         discord_id = str(ctx.author.id)
         username = str(ctx.author.name)
@@ -36,7 +37,9 @@ class RegisterCog(commands.Cog):
             db.add(user)
             db.commit()
 
-            mensaje = await ctx.send(f"Usuario {user.username} registrado con ID {user.discord_id}")
+            mensaje = await ctx.send(
+                f"Usuario {user.username} registrado con ID {user.discord_id}"
+            )
         except Exception as e:
             db.rollback()
             mensaje = await ctx.send(f"Error al registrar el usuario: {e}")
@@ -47,6 +50,7 @@ class RegisterCog(commands.Cog):
         await asyncio.sleep(30)
         await mensaje.delete()
         await ctx.message.delete()
+
 
 async def setup(bot):
     await bot.add_cog(RegisterCog(bot))

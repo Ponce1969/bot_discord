@@ -13,9 +13,13 @@ class ComandoChistes(commands.Cog):
     def __init__(self, bot: Bot) -> None:
         """Inicializa el Cog."""
         self.bot = bot
-        self.canal_permitido_id = 1172339507899670600  # ID del canal donde se permitirá usar el comando
+        self.canal_permitido_id = (
+            1172339507899670600  # ID del canal donde se permitirá usar el comando
+        )
 
-    @commands.command(name='chiste', aliases=['chistes'])  # aliases es para poner más de un nombre al comando
+    @commands.command(
+        name="chiste", aliases=["chistes"]
+    )  # aliases es para poner más de un nombre al comando
     async def chiste(self, ctx: Context) -> None:
         """Envía un chiste al canal."""
         if ctx.channel.id != self.canal_permitido_id:
@@ -30,10 +34,11 @@ class ComandoChistes(commands.Cog):
             await mensaje.delete()
             await ctx.message.delete()
         except Exception as e:
-            if ctx.invoked_with == 'chistes':
+            if ctx.invoked_with == "chistes":
                 await ctx.send("El comando correcto es `>chiste`, no `>chistes`.")
             else:
                 await ctx.send(f"Ocurrió un error: {e}")
+
 
 async def setup(bot: Bot) -> None:
     """Configura el Cog."""

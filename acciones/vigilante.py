@@ -21,7 +21,7 @@ PALABRAS_PROHIBIDAS = {
         "pija",
         "puta",
         "puto",
-        "zorra"
+        "zorra",
     ],
     "inglés": [
         "asshole",
@@ -31,10 +31,11 @@ PALABRAS_PROHIBIDAS = {
         "motherfucker",
         "prick",
         "shit",
-        "whore"
-    ]
+        "whore",
+    ],
     # Añade más categorías y palabras según sea necesario
 }
+
 
 def normalizar_texto(texto):
     """
@@ -46,9 +47,10 @@ def normalizar_texto(texto):
     # Convertir a minúsculas
     texto = texto.lower()
     # Normalizar acentos y caracteres especiales
-    texto = unicodedata.normalize('NFKD', texto)
-    texto = ''.join(c for c in texto if not unicodedata.combining(c))
+    texto = unicodedata.normalize("NFKD", texto)
+    texto = "".join(c for c in texto if not unicodedata.combining(c))
     return texto
+
 
 def contiene_palabra_prohibida(mensaje):
     """
@@ -60,6 +62,8 @@ def contiene_palabra_prohibida(mensaje):
     mensaje_normalizado = normalizar_texto(mensaje)  # Normalizar el mensaje
     for _categoria, palabras in PALABRAS_PROHIBIDAS.items():
         for palabra in palabras:
-            if normalizar_texto(palabra) in mensaje_normalizado:  # Normalizar la palabra prohibida
+            if (
+                normalizar_texto(palabra) in mensaje_normalizado
+            ):  # Normalizar la palabra prohibida
                 return palabra
     return None

@@ -9,7 +9,7 @@ class ComandoHola(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name='hola')# Decorador para crear comandos
+    @commands.command(name="hola")  # Decorador para crear comandos
     async def hola_comando(self, ctx):
         """
         Da la bienvenida al usuario y le cuenta de qué trata el servidor.
@@ -25,7 +25,7 @@ class ComandoHola(commands.Cog):
         # Eliminar el mensaje del comando
         await ctx.message.delete()
 
-    @commands.Cog.listener() # Decorador para escuchar eventos
+    @commands.Cog.listener()  # Decorador para escuchar eventos
     async def on_member_join(self, member):
         """
         Enviar un mensaje de bienvenida cuando un usuario se une al servidor.
@@ -37,6 +37,7 @@ class ComandoHola(commands.Cog):
         # Eliminar todos los mensajes enviados por la función hola
         for mensaje in mensajes:
             await mensaje.delete()
+
 
 async def setup(bot):
     await bot.add_cog(ComandoHola(bot))

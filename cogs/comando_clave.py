@@ -8,11 +8,12 @@ from acciones.palabras_clave import palabras_clave
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class ClaveCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name='claves')
+    @commands.command(name="claves")
     async def mostrar_claves(self, ctx):
         mensaje = "Aquí están las palabras clave que puedes usar:\n\n"
         for clave, descripcion in palabras_clave.items():
@@ -23,6 +24,7 @@ class ClaveCog(commands.Cog):
 
         # Eliminar el mensaje del usuario después de 30 segundos
         await ctx.message.delete(delay=30)
+
 
 # Función para registrar el cog en el bot
 async def setup(bot):

@@ -39,6 +39,6 @@ class Abrazo(commands.Cog):
         await mensaje.delete()
         await ctx.message.delete()
 
+
 async def setup(bot):
     await bot.add_cog(Abrazo(bot))
-

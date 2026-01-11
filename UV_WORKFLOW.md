@@ -72,39 +72,39 @@ docker-compose up bot-uv
 docker-compose logs -f bot-uv
 ```
 
-## 🔧 Herramientas de Desarrollo (Integradas en uv)
+## 🔧 Herramientas de Desarrollo (con uv + ruff)
 
-### Formateo de código (reemplaza black)
+### Formateo de código (usando ruff)
 ```bash
 # Formatear todo el proyecto
-uv fmt
+uv run ruff format .
 
 # Formatear archivo específico
-uv fmt pythonbot.py
+uv run ruff format pythonbot.py
 
-# Ver qué cambiaría sin aplicar
-uv fmt --check
+# Ver qué cambiaría sin aplicar (check mode)
+uv run ruff format --check .
 
-# Formatear solo archivos modificados
-uv fmt --diff
+# Ver diff de cambios
+uv run ruff format --diff .
 ```
 
-### Linting y análisis (reemplaza ruff + mypy)
+### Linting y análisis (usando ruff)
 ```bash
 # Analizar todo el proyecto
-uv check
+uv run ruff check .
 
 # Analizar archivo específico  
-uv check pythonbot.py
+uv run ruff check pythonbot.py
 
-# Solo errores, sin warnings
-uv check --select E,F
+# Solo errores específicos
+uv run ruff check --select E,F .
 
 # Arreglar automáticamente lo que se pueda
-uv check --fix
+uv run ruff check --fix .
 
-# Type checking
-uv check --type-check
+# Mostrar todas las reglas aplicadas
+uv run ruff check --show-settings
 ```
 
 ### Testing
@@ -162,10 +162,10 @@ docker-compose exec bot-uv uv tree
 uv sync
 
 # 2. Formatear código
-uv fmt
+uv run ruff format .
 
 # 3. Analizar código
-uv check
+uv run ruff check .
 
 # 4. Ejecutar tests
 uv run pytest
@@ -177,18 +177,18 @@ uv run python pythonbot.py
 ### Un solo comando para todo
 ```bash
 # Formatear, analizar y ejecutar
-uv fmt && uv check && uv run python pythonbot.py
+uv run ruff format . && uv run ruff check . && uv run python pythonbot.py
 ```
 
 ## 📊 Ventajas de uv vs Herramientas Separadas
 
-| Tarea | Antes (separado) | Ahora (uv) | Velocidad |
-|-------|------------------|------------|-----------|
+| Tarea | Antes (separado) | Ahora (uv + ruff) | Velocidad |
+|-------|------------------|-------------------|-----------|
 | Instalar deps | `pip install -r requirements.txt` | `uv sync` | **10-100x más rápido** |
-| Formatear | `black .` | `uv fmt` | **5x más rápido** |
-| Linting | `ruff check .` | `uv check` | **3x más rápido** |
-| Type check | `mypy .` | `uv check --type-check` | **2x más rápido** |
+| Formatear | `black .` | `uv run ruff format .` | **5x más rápido** |
+| Linting | `ruff check .` | `uv run ruff check .` | **Integrado** |
 | Ejecutar | `python pythonbot.py` | `uv run python pythonbot.py` | **Mismo** |
+| Tests | `pytest` | `uv run pytest` | **Mismo** |
 
 ## 🔄 Migración desde Poetry
 
@@ -261,8 +261,11 @@ uv --verbose sync
 # Ver resolución de dependencias
 uv tree --depth 2
 
-# Verificar configuración
-uv config list
+# Ver información del proyecto
+uv pip list
+
+# Verificar versión de uv
+uv --version
 ```
 
 ### CI/CD
@@ -270,7 +273,8 @@ uv config list
 # En GitHub Actions, usar uv oficial
 - uses: astral-sh/setup-uv@v1
 - run: uv sync
-- run: uv check
+- run: uv run ruff check .
+- run: uv run ruff format --check .
 - run: uv run pytest
 ```
 

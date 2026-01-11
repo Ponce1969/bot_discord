@@ -19,7 +19,9 @@ class ComandoGracias(commands.Cog):
         """
         Permite a los usuarios agradecer a otros.
         """
-        if ctx.channel.id != 1172339507899670600:  # Verificar que el comando se ejecuta en el canal permitido
+        if (
+            ctx.channel.id != 1172339507899670600
+        ):  # Verificar que el comando se ejecuta en el canal permitido
             await ctx.send("Este comando solo se puede usar en el canal #chat_general.")
             return
 
@@ -31,7 +33,9 @@ class ComandoGracias(commands.Cog):
         thanks_count = dar_gracias(db, str(member.id), member.name)
 
         # Enviar el mensaje de agradecimiento y guardar la respuesta en 'response'
-        response = await ctx.send(f"{member.mention} ha recibido un agradecimiento. Total de agradecimientos: {thanks_count}")
+        response = await ctx.send(
+            f"{member.mention} ha recibido un agradecimiento. Total de agradecimientos: {thanks_count}"
+        )
 
         # Actualizar el nombre de usuario con el ranking
         copas = thanks_count // 20
@@ -59,13 +63,14 @@ class ComandoGracias(commands.Cog):
 
         # Usar table2ascii para dar formato a la tabla
         table = t2a(
-            header=ranking_data[0],   # Los encabezados
-            body=ranking_data[1:],    # Los datos (sin el encabezado)
-            style=PresetStyle.thin_box # Se puede cambiar el estilo de la tabla si se desea
+            header=ranking_data[0],  # Los encabezados
+            body=ranking_data[1:],  # Los datos (sin el encabezado)
+            style=PresetStyle.thin_box,  # Se puede cambiar el estilo de la tabla si se desea
         )
 
         # Enviar la tabla en Discord dentro de un bloque de código
         await ctx.send(f"```\n{table}\n```")
+
 
 async def setup(bot):
     await bot.add_cog(ComandoGracias(bot))

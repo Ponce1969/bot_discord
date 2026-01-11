@@ -20,12 +20,14 @@ logger = logging.getLogger(__name__)
 
 # Cargar las variables de entorno
 load_dotenv()
-token = os.getenv('DISCORD_TOKEN')
-deepseek_api_key = os.getenv('DEEPSEEK_API_KEY')
+token = os.getenv("DISCORD_TOKEN")
+deepseek_api_key = os.getenv("DEEPSEEK_API_KEY")
 if deepseek_api_key:
     logger.info("DeepSeek API key found.")
 else:
-    logger.warning("DEEPSEEK_API_KEY not found in environment variables. DeepSeek commands may not work.")
+    logger.warning(
+        "DEEPSEEK_API_KEY not found in environment variables. DeepSeek commands may not work."
+    )
 
 # Configurar los intents del bot
 intents = discord.Intents.default()
@@ -33,40 +35,49 @@ intents.message_content = True
 intents.members = True
 
 # Crear una instancia del bot
-bot = Bot(command_prefix='>', description="Bot de ayuda", intents=intents, case_insensitive=True)
+bot = Bot(
+    command_prefix=">",
+    description="Bot de ayuda",
+    intents=intents,
+    case_insensitive=True,
+)
 
 # Inicializar la base de datos
 init_db()
 
+
 async def load_cogs(bot):
     """Carga todos los cogs en la carpeta cogs."""
-    for filename in os.listdir(os.path.join(os.path.dirname(__file__), 'cogs')):
-        if filename.endswith('.py') and filename != '__init__.py':
+    for filename in os.listdir(os.path.join(os.path.dirname(__file__), "cogs")):
+        if filename.endswith(".py") and filename != "__init__.py":
             try:
-                await bot.load_extension(f'cogs.{filename[:-3]}')
-                logger.info(f'Loaded extension: cogs.{filename[:-3]}')
+                await bot.load_extension(f"cogs.{filename[:-3]}")
+                logger.info(f"Loaded extension: cogs.{filename[:-3]}")
             except Exception as e:
-                logger.error(f'Failed to load extension cogs.{filename[:-3]}: {e}')
+                logger.error(f"Failed to load extension cogs.{filename[:-3]}: {e}")
+
 
 @bot.event
 async def on_ready():
     """Evento que se ejecuta cuando el bot está listo."""
-    logger.info(f'Logged in as {bot.user}')
+    logger.info(f"Logged in as {bot.user}")
     # Configurar el estado del bot para que se vea en línea
     await bot.change_presence(
-        status=discord.Status.online,
-        activity=discord.Game(name=">ayuda para comandos")
+        status=discord.Status.online, activity=discord.Game(name=">ayuda para comandos")
     )
+
 
 @bot.event
 async def on_disconnect():
     """Evento que se ejecuta cuando el bot se desconecta."""
-    logger.warning('Bot disconnected! Attempting to reconnect...')
+    logger.warning("Bot disconnected! Attempting to reconnect...")
+
 
 @bot.event
 async def on_resumed():
     """Evento que se ejecuta cuando el bot reanuda la sesión."""
-    logger.info('Bot resumed session successfully.')
+    logger.info("Bot resumed session successfully.")
+
 
 async def main():
     """Función principal que arranca el bot y maneja la reconexión."""
@@ -75,12 +86,12 @@ async def main():
             await load_cogs(bot)
             await bot.start(token)
         except discord.DiscordException as e:
-            logger.error(f'Discord exception in main loop: {e}')
+            logger.error(f"Discord exception in main loop: {e}")
             await asyncio.sleep(5)  # Esperar 5 segundos antes de intentar reconectar
         except Exception as e:
-            logger.error(f'Unexpected error in main loop: {e}')
+            logger.error(f"Unexpected error in main loop: {e}")
             await asyncio.sleep(5)  # Esperar 5 segundos antes de intentar reconectar
 
-if __name__ == '__main__':
-    asyncio.run(main())
 
+if __name__ == "__main__":
+    asyncio.run(main())

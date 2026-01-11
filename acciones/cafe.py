@@ -14,6 +14,7 @@ def cafe(tipo: str) -> str:
     }
     return cafe.get(tipo, "☕ cafe solo")
 
+
 def opciones_cafe() -> str:
     opciones = r"""
 \`\`\`
