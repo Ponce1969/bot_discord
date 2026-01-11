@@ -14,7 +14,7 @@ anyhow = "1.0"
 clap = { version = "4.0", features = ["derive"] }
 
 # Para métricas del sistema
-sysinfo = "0.30"
+sysinfo = "0.32"
 procfs = "0.16"
 
 # Para networking

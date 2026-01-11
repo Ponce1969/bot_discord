@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
-use sysinfo::{System, SystemExt, CpuExt, DiskExt, NetworkExt, ProcessExt};
+use sysinfo::System;
 
 #[derive(Parser)]
 #[command(name = "system_monitor")]
@@ -187,9 +187,9 @@ impl SystemMetrics {
         
         Ok(SystemMetrics {
             timestamp,
-            hostname: system.host_name().unwrap_or_else(|| "unknown".to_string()),
-            uptime: system.uptime(),
-            boot_time: system.boot_time(),
+            hostname: System::host_name().unwrap_or_else(|| "unknown".to_string()),
+            uptime: System::uptime(),
+            boot_time: System::boot_time(),
             cpu,
             memory,
             storage,
@@ -211,7 +211,7 @@ impl SystemMetrics {
         let frequency = Self::get_cpu_frequency().ok();
         
         // Load average
-        let load_avg = system.load_average();
+        let load_avg = System::load_average();
         
         let cores = if detailed {
             cpus.iter()
@@ -324,9 +324,9 @@ impl SystemMetrics {
     
     fn collect_system_info(system: &System) -> Result<SystemInfo> {
         Ok(SystemInfo {
-            os_name: system.name().unwrap_or_else(|| "Unknown".to_string()),
-            os_version: system.os_version().unwrap_or_else(|| "Unknown".to_string()),
-            kernel_version: system.kernel_version().unwrap_or_else(|| "Unknown".to_string()),
+            os_name: System::name().unwrap_or_else(|| "Unknown".to_string()),
+            os_version: System::os_version().unwrap_or_else(|| "Unknown".to_string()),
+            kernel_version: System::kernel_version().unwrap_or_else(|| "Unknown".to_string()),
             architecture: std::env::consts::ARCH.to_string(),
             cpu_count: system.cpus().len(),
         })
