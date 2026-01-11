@@ -16,7 +16,7 @@ class SystemMetricsRust:
     """Interfaz Python para el monitor Rust"""
 
     def __init__(
-        self, rust_binary_path: str = "./system_monitor/target/release/system_monitor"
+        self, rust_binary_path: str = "/app/system_monitor/target/release/system_monitor"
     ):
         self.rust_binary_path = rust_binary_path
         self.cache_duration = 30  # segundos
