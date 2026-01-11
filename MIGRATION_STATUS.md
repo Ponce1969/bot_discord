@@ -63,18 +63,26 @@
 - **Fixed docker-compose.uv.yml**: Corrected volume mounts and env file usage
 - **Verified functionality**: Bot connects successfully and all extensions load
 
-### ✅ DEEPSEEK UI IMPROVEMENTS - COMPLETAMENTE ARREGLADO
+### DEEPSEEK UI IMPROVEMENTS - COMPLETAMENTE ARREGLADO
 - **Fixed response formatting**: Footer AND timestamp now appear ONLY at the END of responses
 - **Eliminated interruptions**: No more "hoy a las XX:XX" breaking long AI responses
 - **Perfect user experience**: Long AI responses flow naturally without cuts
 - **Clean Discord integration**: "Solicitado por [usuario]" + timestamp appear only in the final embed
 
-### ✅ LLAMA UI IMPROVEMENTS - COMPLETAMENTE ARREGLADO
+### LLAMA UI IMPROVEMENTS - COMPLETAMENTE ARREGLADO
 - **Unified experience**: Llama now uses the same multi-embed system as DeepSeek
 - **No more file attachments**: Long responses are now sent as beautiful colored embeds
 - **Color rotation**: Each embed uses different colors (green, blue, orange, pink, purple)
 - **Consistent formatting**: Footer and timestamp only in the last embed
 - **Better readability**: Title only in first embed, clean continuation in others
+
+### PROJECT CLEANUP COMPLETED (Enero 2026)
+- **Eliminados archivos Docker duplicados**: Consolidados en `Dockerfile` y `docker-compose.yml`
+- **Eliminado poetry.lock**: Ya no se usa, migrado completamente a uv
+- **Eliminados archivos temporales**: `pyproject.toml.new`, `pyproject.toml.uv`
+- **Eliminado acciones/gemini.py**: Archivo vacío sin uso
+- **Actualizado .gitignore**: Excluye builds de Rust (`system_monitor/target/`) y backups
+- **Arquitectura clarificada**: `/acciones` contiene lógica de negocio, `/cogs` contiene comandos Discord
 
 ### For Production Deployment (OrangePi 5 Plus)
 1. **Test on Linux Environment**
@@ -126,8 +134,8 @@ The bot is now fully modernized and ready for deployment:
 # Local development
 uv run python pythonbot.py
 
-# Docker deployment
-docker-compose -f docker-compose.uv.yml up -d
+# Docker deployment (archivos simplificados)
+docker-compose up -d
 
 # Test commands in Discord
 >ayuda          # Help command
