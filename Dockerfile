@@ -1,13 +1,18 @@
 # Dockerfile moderno con uv - Sin pip, 100% uv workflow
 FROM python:3.10-slim-bookworm
 
-# Instalar dependencias del sistema necesarias
+# Instalar dependencias del sistema necesarias (incluyendo Rust)
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     libffi-dev \
     libssl-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Instalar Rust para compilar el system_monitor
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Instalar uv - La forma más rápida y moderna
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
@@ -26,6 +31,13 @@ RUN uv sync --frozen
 
 # Copiar el código de la aplicación
 COPY . .
+
+# Compilar el componente Rust system_monitor
+WORKDIR /app/system_monitor
+RUN cargo build --release
+
+# Volver al directorio principal
+WORKDIR /app
 
 # Exponer puerto (si es necesario)
 EXPOSE 8000
