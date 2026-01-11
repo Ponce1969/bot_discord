@@ -1,7 +1,8 @@
-# Aca desarrollamos el comando de encuesta que permite a los usuarios crear una encuesta con una pregunta y varias opciones.
+# Comando de encuesta que permite crear encuestas con una pregunta y varias opciones.
 # El comando se llama encuesta y se define en la clase EncuestaCog.
-# El comando recibe la pregunta y las opciones como argumentos y llama a la función encuesta con estos argumentos.
-# >encuesta "Pregunta" "Opción 1" "Opción 2" ... "Opción N"
+# Usa el separador | para dividir la pregunta de las opciones, sin necesidad de comillas.
+# Uso: >encuesta Pregunta | Opción 1 | Opción 2 | ... | Opción N
+# Ejemplo: >encuesta ¿Quién gana el partido? | Peñarol | Nacional
 from discord.ext import commands
 
 from acciones.encuesta import encuesta
@@ -12,11 +13,26 @@ class EncuestaCog(commands.Cog):
         self.bot = bot
 
     @commands.command(name="encuesta")
-    async def encuesta_command(self, ctx, pregunta: str, *opciones: str):
+    async def encuesta_command(self, ctx, *, texto: str):
         """
         Comando para crear una encuesta.
-        Uso: !encuesta "Pregunta" "Opción 1" "Opción 2" ... "Opción N"
+        Uso: >encuesta Pregunta | Opción 1 | Opción 2 | ... | Opción N
+        Ejemplo: >encuesta ¿Quién gana el partido? | Peñarol | Nacional
         """
+        # Separar pregunta y opciones usando el delimitador |
+        partes = [parte.strip() for parte in texto.split('|')]
+
+        if len(partes) < 3:
+            await ctx.send(
+                "❌ **Formato incorrecto**\n"
+                "Uso: `>encuesta Pregunta | Opción 1 | Opción 2`\n"
+                "Ejemplo: `>encuesta ¿Quién gana? | Peñarol | Nacional`"
+            )
+            return
+
+        pregunta = partes[0]
+        opciones = partes[1:]
+
         # Llamar a la función encuesta y obtener el mensaje del embed
         embed_message = await encuesta(ctx, pregunta, *opciones)
 
