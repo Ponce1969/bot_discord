@@ -35,7 +35,9 @@ COPY . .
 
 # Compilar el componente Rust system_monitor
 WORKDIR /app/system_monitor
-RUN cargo build --release
+RUN cargo build --release && \
+    cp target/release/deps/system_monitor-* target/release/system_monitor 2>/dev/null || \
+    find target/release/deps/ -maxdepth 1 -type f -executable -name "system_monitor-*" -exec cp {} target/release/system_monitor \;
 
 # Volver al directorio principal
 WORKDIR /app
