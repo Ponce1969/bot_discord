@@ -1,12 +1,9 @@
 use anyhow::Result;
-use chrono::{DateTime, Utc};
 use clap::Parser;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::fs;
-use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
-use sysinfo::System;
+use sysinfo::{System, Disks, Networks};
 
 #[derive(Parser)]
 #[command(name = "system_monitor")]
@@ -202,7 +199,7 @@ impl SystemMetrics {
     
     fn collect_cpu_metrics(system: &System, detailed: bool) -> Result<CpuMetrics> {
         let cpus = system.cpus();
-        let global_cpu = system.global_cpu_info();
+        let global_cpu_usage = system.global_cpu_usage();
         
         // Temperatura CPU (específico para OrangePi/ARM)
         let temperature = Self::get_cpu_temperature().ok();
@@ -227,7 +224,7 @@ impl SystemMetrics {
         };
         
         Ok(CpuMetrics {
-            usage_percent: global_cpu.cpu_usage(),
+            usage_percent: global_cpu_usage,
             cores,
             temperature,
             frequency,
@@ -265,10 +262,11 @@ impl SystemMetrics {
         })
     }
     
-    fn collect_storage_metrics(system: &System) -> Result<Vec<StorageMetrics>> {
+    fn collect_storage_metrics(_system: &System) -> Result<Vec<StorageMetrics>> {
         let mut storage_metrics = Vec::new();
+        let disks = Disks::new_with_refreshed_list();
         
-        for disk in system.disks() {
+        for disk in &disks {
             let total = disk.total_space();
             let available = disk.available_space();
             let used = total - available;
@@ -279,8 +277,8 @@ impl SystemMetrics {
             };
             
             storage_metrics.push(StorageMetrics {
-                name: disk.name().to_string_lossy().to_string(),
-                mount_point: disk.mount_point().to_string_lossy().to_string(),
+                name: disk.name().to_string(),
+                mount_point: disk.mount_point().to_string(),
                 total,
                 used,
                 available,
@@ -292,12 +290,13 @@ impl SystemMetrics {
         Ok(storage_metrics)
     }
     
-    fn collect_network_metrics(system: &System) -> Result<NetworkMetrics> {
+    fn collect_network_metrics(_system: &System) -> Result<NetworkMetrics> {
         let mut interfaces = Vec::new();
         let mut total_sent = 0;
         let mut total_received = 0;
+        let networks = Networks::new_with_refreshed_list();
         
-        for (interface_name, data) in system.networks() {
+        for (interface_name, data) in &networks {
             let bytes_sent = data.total_transmitted();
             let bytes_received = data.total_received();
             
@@ -337,7 +336,7 @@ impl SystemMetrics {
             .values()
             .map(|process| ProcessInfo {
                 pid: process.pid().as_u32(),
-                name: process.name().to_string(),
+                name: process.name().to_string_lossy().to_string(),
                 cpu_usage: process.cpu_usage(),
                 memory_usage: process.memory(),
                 memory_percentage: (process.memory() as f32 / system.total_memory() as f32) * 100.0,
