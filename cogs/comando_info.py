@@ -35,9 +35,13 @@ class Info(commands.Cog):
             # Actualizar mensaje con las métricas
             await loading_msg.edit(content=None, embed=embed)
 
-            # Auto-eliminar después de 60 segundos (más tiempo por la riqueza de info)
+            # Auto-eliminar después de 60 segundos (comando y respuesta)
             await asyncio.sleep(60)
             await loading_msg.delete()
+            try:
+                await ctx.message.delete()
+            except Exception:
+                pass  # Ignorar si no se puede borrar (permisos, mensaje ya borrado, etc.)
 
         except Exception as e:
             error_msg = f"Error al obtener métricas del sistema: {str(e)}"
