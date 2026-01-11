@@ -162,10 +162,10 @@ def get_global_metrics():
 def get_or_create_gemini_session(discord_user_id):
     """
     Obtiene la sesión de chat activa de Gemini para un usuario o crea una nueva si no existe.
-    
+
     Args:
         discord_user_id (str): ID del usuario de Discord
-        
+
     Returns:
         GeminiChatSession: Sesión de chat de Gemini
     """
@@ -192,12 +192,12 @@ def get_or_create_gemini_session(discord_user_id):
 def add_message_to_session(session_id, role, content):
     """
     Añade un mensaje a una sesión de chat de Gemini.
-    
+
     Args:
         session_id (int): ID de la sesión de chat
         role (str): Rol del mensaje ('user' o 'model')
         content (str): Contenido del mensaje
-        
+
     Returns:
         GeminiChatMessage: Mensaje añadido
     """
@@ -229,11 +229,11 @@ def add_message_to_session(session_id, role, content):
 def get_session_messages(session_id, limit=20):
     """
     Obtiene los últimos mensajes de una sesión de chat de Gemini.
-    
+
     Args:
         session_id (int): ID de la sesión de chat
         limit (int): Número máximo de mensajes a obtener
-        
+
     Returns:
         list: Lista de mensajes
     """
@@ -251,10 +251,10 @@ def get_session_messages(session_id, limit=20):
 def reset_gemini_session(discord_user_id):
     """
     Desactiva todas las sesiones anteriores y crea una nueva para el usuario.
-    
+
     Args:
         discord_user_id (str): ID del usuario de Discord
-        
+
     Returns:
         GeminiChatSession: Nueva sesión de chat
     """
@@ -279,7 +279,7 @@ def reset_gemini_session(discord_user_id):
 def prune_old_sessions(days_inactive=30):
     """
     Marca como inactivas las sesiones que no han sido actualizadas en un tiempo determinado.
-    
+
     Args:
         days_inactive (int): Número de días de inactividad para marcar como inactiva
     """
@@ -290,7 +290,7 @@ def prune_old_sessions(days_inactive=30):
 
         db.query(GeminiChatSession).filter(
             GeminiChatSession.last_updated < cutoff_date,
-            GeminiChatSession.is_active == True
+            GeminiChatSession.is_active
         ).update({GeminiChatSession.is_active: False})
 
         db.commit()
@@ -322,12 +322,11 @@ def validate_faq_data(faq):
         return False
     return True
 
-# Importar la función de normalización para máxima robustez
-from acciones.oyente import normalize_text
-
 
 # Insertar las preguntas y respuestas en la base de datos usando yield
 def insert_faq_data():
+    from acciones.oyente import normalize_text  # Import local para evitar circular import
+    
     session = next(get_db())
     try:
         for faq in faq_data:

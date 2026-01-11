@@ -105,15 +105,57 @@ class GroqHandler:
         return await asyncio.to_thread(self._get_response_sync, user_message)
 
     def create_response_embed(self, username: str, response: str) -> Embed:
-        """Crea un embed para la respuesta del bot."""
+        """Crea un embed para la respuesta del bot (solo para respuestas cortas)."""
         embed = Embed(
             title="Respuesta del Asistente de Python",
             description=response,
-            color=0x00ff00  # Color verde
+            color=0x00ff00,  # Color verde
+            timestamp=datetime.datetime.now(URUGUAY_TZ)
         )
-        # Usar la zona horaria de Uruguay para el timestamp
-        embed.set_footer(text=f"Pedido por {username} a las {datetime.datetime.now(URUGUAY_TZ).strftime('%H:%M:%S')}")
+        embed.set_footer(
+            text=f"Pedido por {username}",
+            icon_url=None
+        )
         return embed
+
+    def create_response_embeds(self, username: str, response: str) -> list[Embed]:
+        """
+        Crea múltiples embeds para respuestas largas, similar al sistema de DeepSeek.
+        Solo el último embed tendrá timestamp y footer.
+        """
+        # Dividir el mensaje en trozos para los embeds (Discord limita a 4096 caracteres por embed)
+        chunks = [response[i:i + 4096] for i in range(0, len(response), 4096)]
+        
+        embeds = []
+        colors = [0x00ff00, 0x0099ff, 0xff9900, 0xff0099, 0x9900ff]  # Colores para rotación
+        
+        # Crear cada embed
+        for i, chunk in enumerate(chunks):
+            # Rotar colores
+            current_color = colors[i % len(colors)]
+            
+            # Solo el último embed tendrá timestamp y footer
+            if i == len(chunks) - 1:  # Último embed
+                embed = Embed(
+                    title="Respuesta del Asistente de Python" if i == 0 else None,
+                    description=chunk,
+                    color=current_color,
+                    timestamp=datetime.datetime.now(URUGUAY_TZ)
+                )
+                embed.set_footer(
+                    text=f"Pedido por {username}",
+                    icon_url=None
+                )
+            else:
+                embed = Embed(
+                    title="Respuesta del Asistente de Python" if i == 0 else None,
+                    description=chunk,
+                    color=current_color
+                )
+            
+            embeds.append(embed)
+        
+        return embeds
 
 # Inicializar instancias globales para usar en otros módulos
 token_manager = TokenManager()

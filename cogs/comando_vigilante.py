@@ -11,7 +11,7 @@ class Vigilante(commands.Cog):
     def __init__(self, bot, max_advertencias=3):
         """
         Inicializa el cog Vigilante.
-        
+
         :param bot: Instancia del bot de Discord.
         :param max_advertencias: Número máximo de advertencias antes de banear al usuario.
         """
@@ -23,7 +23,7 @@ class Vigilante(commands.Cog):
     async def on_message(self, message):
         """
         Listener que se activa cuando se envía un mensaje en el servidor.
-        
+
         :param message: El mensaje enviado.
         """
         if message.author.bot:
@@ -79,7 +79,7 @@ class Vigilante(commands.Cog):
 async def setup(bot):
     """
     Función para añadir el cog al bot.
-    
+
     :param bot: Instancia del bot de Discord.
     """
     vigilante = Vigilante(bot)

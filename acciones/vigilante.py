@@ -58,7 +58,7 @@ def contiene_palabra_prohibida(mensaje):
     :return: La primera palabra prohibida encontrada en el mensaje, o None si no se encuentra ninguna.
     """
     mensaje_normalizado = normalizar_texto(mensaje)  # Normalizar el mensaje
-    for categoria, palabras in PALABRAS_PROHIBIDAS.items():
+    for _categoria, palabras in PALABRAS_PROHIBIDAS.items():
         for palabra in palabras:
             if normalizar_texto(palabra) in mensaje_normalizado:  # Normalizar la palabra prohibida
                 return palabra

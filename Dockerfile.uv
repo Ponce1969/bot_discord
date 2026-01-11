@@ -19,7 +19,7 @@ WORKDIR /app
 ENV UV_SYSTEM_PYTHON=1
 
 # Copiar archivos de configuración del proyecto
-COPY pyproject.toml ./
+COPY pyproject.toml uv.lock ./
 
 # Sincronizar dependencias con uv (súper rápido)
 RUN uv sync --frozen

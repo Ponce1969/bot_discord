@@ -149,7 +149,7 @@ class SystemMetricsRust:
         **Temperatura:** {temp_color} {cpu.get('temperature', 'N/A')}°C
         **Frecuencia:** {cpu.get('frequency', 'N/A')} MHz
         **Load Avg:** {cpu['load_average'][0]:.2f} {cpu['load_average'][1]:.2f} {cpu['load_average'][2]:.2f}
-        
+
         {self.create_progress_bar(cpu['usage_percent'])}
         """
 
@@ -168,7 +168,7 @@ class SystemMetricsRust:
         **Disponible:** {self.format_bytes(memory['available'])}
         **Swap:** {self.format_bytes(memory['swap_used'])} / {self.format_bytes(memory['swap_total'])}
         **Cache:** {self.format_bytes(memory.get('cached', 0))}
-        
+
         {self.create_progress_bar(memory['percentage'])}
         """
 

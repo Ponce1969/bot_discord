@@ -34,10 +34,15 @@ services:
     build: .
     command: uv run python pythonbot.py
     volumes:
-      - .:/app
+      - ./acciones:/app/acciones
+      - ./base:/app/base
+      - ./cogs:/app/cogs
+      - ./config:/app/config
+      - ./system_monitor:/app/system_monitor
+      - ./imagenes:/app/imagenes
       - uv_cache:/root/.cache/uv  # Cache de uv para builds más rápidos
     env_file:
-      - .env
+      - .env.docker
     working_dir: /app
     ports:
       - "8000:8000"

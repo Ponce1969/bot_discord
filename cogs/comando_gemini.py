@@ -43,7 +43,7 @@ class ComandoGemini(commands.Cog):
     def __init__(self, bot: commands.Bot):
         """
         Inicializa el Cog de DeepSeek.
-        
+
         Args:
             bot (commands.Bot): Instancia del bot de Discord
         """
@@ -60,7 +60,7 @@ class ComandoGemini(commands.Cog):
         )
         self.model_name = "deepseek-chat"
         # Se mantiene un diccionario en memoria como caché temporal para evitar excesivas consultas a BD
-        self.chat_cache = {}
+        self.chat_cache: dict[int, list] = {}
         # Crear pool de hilos para operaciones bloqueantes
         self.thread_pool = ThreadPoolExecutor(max_workers=5)
         # Inicializar índice para rotación de colores
@@ -85,10 +85,10 @@ class ComandoGemini(commands.Cog):
         """
         Obtiene o crea una sesión de chat para un usuario específico.
         Utiliza la base de datos para persistencia.
-        
+
         Args:
             user_id (int): ID del usuario de Discord
-            
+
         Returns:
             list: Historial de mensajes del usuario en formato OpenAI
         """
@@ -120,7 +120,7 @@ class ComandoGemini(commands.Cog):
     async def _chunk_and_send(self, ctx: commands.Context, text: str) -> None:
         """
         Divide un mensaje largo en trozos más pequeños y los envía como embeds con colores alternados.
-        
+
         Args:
             ctx: Contexto del comando
             text: Texto a dividir y enviar
@@ -135,14 +135,21 @@ class ComandoGemini(commands.Cog):
             # Incrementar el índice para el siguiente embed
             self.embed_color_index += 1
 
-            embed = discord.Embed(
-                description=chunk,
-                color=current_color,
-                timestamp=datetime.now(timezone.utc)
-            )
+            # Solo el último embed tendrá timestamp y footer
+            if i == len(chunks) - 1:  # Último embed
+                embed = discord.Embed(
+                    description=chunk,
+                    color=current_color,
+                    timestamp=datetime.now(timezone.utc)
+                )
+            else:
+                embed = discord.Embed(
+                    description=chunk,
+                    color=current_color
+                )
 
-            # Solo en el primer embed mostramos el pie con el autor
-            if i == 0:
+            # Solo en el ÚLTIMO embed mostramos el pie con el autor
+            if i == len(chunks) - 1:  # Último embed
                 embed.set_footer(
                     text=f"Solicitado por {ctx.author.display_name}",
                     icon_url=ctx.author.avatar.url if ctx.author.avatar else None
@@ -154,10 +161,10 @@ class ComandoGemini(commands.Cog):
         """
         Procesa una imagen para enviarla a Gemini.
         Redimensiona la imagen si supera los límites de tamaño.
-        
+
         Args:
             image_bytes: Bytes de la imagen a procesar
-            
+
         Returns:
             Image: Objeto de imagen procesado para Gemini
         """
@@ -173,7 +180,7 @@ class ComandoGemini(commands.Cog):
             new_size = (int(image.width * ratio), int(image.height * ratio))
 
             # Redimensionar la imagen
-            image = image.resize(new_size, Image.LANCZOS)
+            image = image.resize(new_size, Image.Resampling.LANCZOS)
 
             # Convertir de nuevo a bytes
             buffer = io.BytesIO()
@@ -187,14 +194,14 @@ class ComandoGemini(commands.Cog):
     async def _run_in_thread(self, func, *args):
         """
         Ejecuta una función en un hilo separado y con timeout.
-        
+
         Args:
             func: La función a ejecutar
             args: Argumentos para la función
-            
+
         Returns:
             El resultado de la función
-            
+
         Raises:
             asyncio.TimeoutError: Si la función tarda más del timeout definido
         """
@@ -225,12 +232,12 @@ class ComandoGemini(commands.Cog):
     def _prepare_localized_prompt(self, prompt: str, lang_code: str, is_image: bool = False) -> str:
         """
         Asegura que el prompt solicite una respuesta en el idioma especificado.
-        
+
         Args:
             prompt (str): Prompt original del usuario
             lang_code (str): Código del idioma (ej: 'es', 'en', etc.)
             is_image (bool): Si es True, utiliza un prompt predeterminado para imágenes cuando está vacío
-            
+
         Returns:
             str: Prompt modificado para asegurar respuesta en el idioma solicitado
         """
@@ -272,7 +279,7 @@ class ComandoGemini(commands.Cog):
         Puede procesar texto y, opcionalmente, imágenes adjuntas.
         Uso: >deepseek [--lang <código>] <tu pregunta> (adjunta una imagen si quieres análisis visual)
         Ejemplo: >deepseek --lang en How's the weather?
-        
+
         Args:
             ctx (commands.Context): Contexto del comando
             prompt (str): Prompt del usuario, puede incluir --lang <código> para especificar idioma
@@ -438,7 +445,7 @@ class ComandoGemini(commands.Cog):
         """
         Reinicia la sesión de chat con DeepSeek AI para el usuario.
         Uso: >deepseek_reset
-        
+
         Args:
             ctx (commands.Context): Contexto del comando
         """
@@ -456,7 +463,7 @@ class ComandoGemini(commands.Cog):
         """
         Muestra ayuda sobre el uso del comando deepseek y sus opciones.
         Uso: >deepseek_help
-        
+
         Args:
             ctx (commands.Context): Contexto del comando
         """
@@ -516,7 +523,7 @@ f"Puedes especificar el idioma de respuesta con `--lang código`.\n"
 async def setup(bot: commands.Bot):
     """
     Configura el cog de DeepSeek en el bot.
-    
+
     Args:
         bot (commands.Bot): Instancia del bot
     """

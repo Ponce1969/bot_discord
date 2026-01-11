@@ -1,7 +1,5 @@
 import time
-from io import StringIO
 
-from discord import File
 from discord.ext import commands
 
 from acciones.llama import (
@@ -19,7 +17,7 @@ class Llama(commands.Cog):
         self.groq_handler = groq_handler
 
     @commands.command(name='llama')
-    async def llama(self, ctx, *, user_message: str = None):
+    async def llama(self, ctx, *, user_message: str = ""):
         if not user_message:
             await ctx.send("Hola, debes hacerme una pregunta sobre código para que pueda responder.")
             return
@@ -35,16 +33,15 @@ class Llama(commands.Cog):
                     await thinking_message.edit(content="Se ha alcanzado el límite diario de tokens. Intenta mañana.")
                     return
                 response = await self.groq_handler.get_response(user_message)
-                if len(response) <= 1900:
-                    embed = self.groq_handler.create_response_embed(ctx.author.name, response)
-                    await thinking_message.delete()
+                
+                await thinking_message.delete()
+                
+                # Usar el nuevo sistema de múltiples embeds para todas las respuestas
+                embeds = self.groq_handler.create_response_embeds(ctx.author.display_name, response)
+                
+                # Enviar cada embed por separado
+                for embed in embeds:
                     await ctx.send(embed=embed)
-                else:
-                    fue_archivo = True
-                    buffer = StringIO(response)
-                    buffer.seek(0)
-                    await thinking_message.edit(content="La respuesta es extensa, se enviará como archivo.")
-                    await ctx.send(file=File(fp=buffer, filename="respuesta_llama.txt"))
         except Exception as e:
             fallo_api = True
             await thinking_message.edit(content=f"Error al obtener la respuesta: {str(e)}")
