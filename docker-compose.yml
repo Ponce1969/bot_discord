@@ -47,7 +47,7 @@ services:
       - ./imagenes:/app/imagenes
       - uv_cache:/root/.cache/uv  # Cache de uv para builds más rápidos
     env_file:
-      - .env.docker
+      - .env
     working_dir: /app
     ports:
       - "8000:8000"

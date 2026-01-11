@@ -37,11 +37,18 @@ uv sync
 cp .env.example .env
 # Editar .env con tus credenciales
 
+# IMPORTANTE: Para Docker, asegúrate de usar DATABASE_URL con hostname 'postgres'
+# DATABASE_URL=postgresql://usuario:password@postgres:5432/discord
+
 # 5. Ejecutar el bot
 uv run python pythonbot.py
 ```
 
 ## 🐳 Docker
+
+**Nota:** Docker usa el **mismo archivo `.env`** que desarrollo local. Asegúrate de configurar `DATABASE_URL` con el hostname correcto:
+- **Desarrollo local:** `localhost:5432`
+- **Docker/Producción:** `postgres:5432`
 
 ```bash
 # Levantar todos los servicios
