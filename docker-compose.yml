@@ -33,10 +33,10 @@ services:
     networks:
       - bot-network
 
-  bot-uv:
+  bot:
     build:
       context: .
-      dockerfile: Dockerfile.uv
+      dockerfile: Dockerfile
     command: uv run python pythonbot.py
     volumes:
       - ./acciones:/app/acciones
